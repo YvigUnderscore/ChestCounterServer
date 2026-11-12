@@ -4,11 +4,11 @@
 
 <img src="docs/icon.png" alt="" width="88">
 
-# Compteur de coffres Fortnite
+# Compteur de coffres Fortnite · édition serveur de groupe
 
-[![version](https://img.shields.io/github/v/release/LED-N/Fortnite-ChestCounter?style=flat-square&label=version&color=e8b04b)](../../releases/latest) [![téléchargements](https://img.shields.io/github/downloads/LED-N/Fortnite-ChestCounter/total?style=flat-square&label=t%C3%A9l%C3%A9chargements&color=e8b04b)](../../releases) ![Windows 10 | 11](https://img.shields.io/badge/Windows-10%20%7C%2011-3a7bd5?style=flat-square) [![licence](https://img.shields.io/github/license/LED-N/Fortnite-ChestCounter?style=flat-square&label=licence&color=555)](LICENSE)
+![Windows 10 | 11](https://img.shields.io/badge/Windows-10%20%7C%2011-3a7bd5?style=flat-square) ![Docker](https://img.shields.io/badge/serveur-Docker-2496ed?style=flat-square) [![licence](https://img.shields.io/badge/licence-MIT-555?style=flat-square)](LICENSE)
 
-**Compte chaque coffre que tu ouvres dans Fortnite, partie après partie, avec un overlay qui se fond dans le jeu.**
+**Compte chaque coffre que tu ouvres dans Fortnite, partie après partie, et additionne ceux de ton groupe d'amis sur un serveur que tu héberges toi-même.**
 
 <img src="docs/overlay-fr.png" alt="Overlay entre deux parties" height="150">&nbsp;&nbsp;&nbsp;&nbsp;<img src="docs/overlay-match-fr.png" alt="Overlay pendant une partie" height="150">
 
@@ -17,6 +17,15 @@
 </div>
 
 ---
+
+> [!NOTE]
+> **Ceci est un fork** du [compteur de coffres de LED-N](https://github.com/LED-N/Fortnite-ChestCounter). Il garde tout le compteur (lecture des replays, overlay, rapport, chances, collection) et ajoute une **version serveur** :
+>
+> - un **serveur de groupe** à héberger soi-même avec Docker (NAS, VPS, Raspberry Pi…), qui additionne les coffres de chaque équipe, partie par partie ;
+> - un **site** à partager par un simple lien : stats du groupe, de chaque joueur et de chaque partie, chances, collection ;
+> - un **overlay OBS par joueur**, servi par le serveur.
+>
+> Le serveur s'adresse aux plus techniques : voir **[SERVEUR.md](SERVEUR.md)** pour l'installer. Sans serveur, le compteur fonctionne comme l'original, uniquement en local.
 
 Le compteur de coffres lit les replays (« rediffusions ») que Fortnite enregistre après chaque partie et tient le compte des coffres que tu as ouverts, ainsi que des **trésors de la chasse au trésor** sortis de tes coffres. Un overlay transparent affiche tes chiffres par-dessus le jeu, comme le reste du HUD, et la fenêtre du compteur garde tout ton historique, tes chances d'obtenir la tenue en or et ta collection de trésors.
 
@@ -29,7 +38,7 @@ Fortnite peut enregistrer un **fichier replay** de chaque partie sur ton PC. Le 
 - ✅ **Lit uniquement les replays** : les fichiers `.replay` que Fortnite écrit dans `%LOCALAPPDATA%\FortniteGame\Saved\Demos`. Ils sont ouverts en lecture seule, jamais modifiés.
 - ✅ **Aucune modification du jeu** : rien n'est touché dans le dossier d'installation de Fortnite, aucun fichier n'est ajouté ni changé.
 - ✅ **Aucun accès à la mémoire du jeu** : l'outil ne lit, n'écrit et n'injecte jamais rien dans le processus Fortnite. Il n'interagit pas du tout avec le jeu en cours.
-- ✅ **Aucune donnée envoyée** : pas de connexion, pas d'accès à ton compte Epic, pas de télémétrie. Il ne se connecte qu'à GitHub, pour télécharger : les données de la chasse au trésor (semaines, cotes, heures du trésor, quelques kilo-octets à chaque démarrage), les images de la collection de trésors (une seule fois) et, sauf si tu le désactives, une nouvelle version de l'outil. Rien n'est envoyé.
+- ✅ **Rien d'envoyé sans ton accord** : pas de connexion, pas d'accès à ton compte Epic, pas de télémétrie. Il se connecte à GitHub pour télécharger les données de la chasse au trésor (semaines, cotes, heures du trésor, quelques kilo-octets à chaque démarrage) et les images de la collection (une seule fois). Si tu indiques un **serveur de groupe**, il y envoie après chaque partie **tes propres coffres** (et quand tu les as ouverts), l'identifiant de la partie, ton numéro d'équipe et les identifiants Epic de tes coéquipiers, rien d'autre. Sans serveur, rien n'est envoyé.
 - ✅ **Rien d'ouvert sur le réseau** : la fenêtre affiche une page que le compteur sert à ton PC uniquement (`127.0.0.1`, avec une clé aléatoire).
 - ✅ **Léger** : tourne en priorité basse (et en « mode efficacité » sur Windows 11), dort entre les parties, et le moteur d'affichage de la fenêtre est arrêté quand elle est dans la zone de notification.
 
@@ -44,7 +53,7 @@ Comme Fortnite n'écrit la clé de déchiffrement du replay qu'à la fin de la p
 2. Active les rediffusions dans Fortnite (voir ci-dessus).
 3. Lance `ChestCounter.exe`.
    > Windows peut afficher « Windows a protégé votre ordinateur » car l'exe n'est pas signé. Clique sur *Informations complémentaires → Exécuter quand même*.
-4. La fenêtre du compteur s'ouvre. Aucune question : la carte **Bienvenue** règle les trois points importants (ils restent dans **Réglages**), et les replays déjà présents sur ton PC sont comptés tout de suite.
+4. La fenêtre du compteur s'ouvre. La carte **Bienvenue** règle les points importants (ils restent dans **Réglages**) et demande l'**adresse du serveur de groupe** et sa **clé**, données par celui qui l'héberge. Sans adresse, choisis **Local seulement** : le compteur fonctionne uniquement sur ton PC. Les replays déjà présents sont comptés tout de suite.
 
 <p align="center"><img src="docs/welcome-fr.png" alt="Premier lancement : la carte de bienvenue" width="820"></p>
 
@@ -82,7 +91,8 @@ Clique sur le **crayon** de *Coffres au total* (Accueil ou Rapport) pour ajouter
 | Langue | Français, anglais ou espagnol. |
 | Réduire dans la zone de notification | Oui : réduire la fenêtre la range à côté de l'horloge, en bas à droite de la barre des tâches (icône du coffre, parfois derrière la petite flèche ^). Non (par défaut) : elle reste dans la barre des tâches comme une fenêtre normale. |
 | Ouvrir avec Fortnite | Voir plus bas. |
-| Mises à jour | Proposées (par défaut), installées automatiquement ou désactivées. |
+| Mises à jour | Désactivées par défaut (voir [Mises à jour](#mises-à-jour)), proposées ou installées automatiquement. |
+| Serveur de groupe | Adresse et clé du serveur du groupe. Vide : mode local, rien n'est envoyé. Le compteur signale tout de suite une adresse ou une clé refusée. |
 | Dossier des replays | À changer seulement si tu l'as déplacé. |
 | Compte (profil) | Affiché quand plusieurs comptes Fortnite ont enregistré des replays sur ce PC. |
 
@@ -104,7 +114,7 @@ Juste les chiffres, contourés comme ceux du jeu, sans fond : place-le sous la m
 | **Ctrl+Maj+O** | Afficher / masquer l'overlay. Marche partout, même en jeu. |
 | **Ctrl+Maj+L** | Verrouiller / déverrouiller. **Verrouillé** : la souris passe au travers (idéal en jeu). **Déverrouillé** : un fond apparaît, maintiens le clic gauche pour le déplacer, clic droit pour le masquer. |
 
-Pour le voir par-dessus le jeu, mets Fortnite en **Plein écran fenêtré** (*Paramètres → Vidéo → Mode de fenêtre*) : en plein écran exclusif, Windows ne peut rien afficher par-dessus le jeu. L'onglet **Overlay** l'active ou le désactive et règle son style (HUD, ou classique : une carte sombre avec plus de détails), sa taille et son opacité. **Afficher le total d'équipe** ajoute une ligne avec tes coffres + ceux de tes coéquipiers (désactivé par défaut, et imprécis : un coffre ouvert par un coéquipier à plus de 150 m de toi n'est pas dans tes replays).
+Pour le voir par-dessus le jeu, mets Fortnite en **Plein écran fenêtré** (*Paramètres → Vidéo → Mode de fenêtre*) : en plein écran exclusif, Windows ne peut rien afficher par-dessus le jeu. L'onglet **Overlay** l'active ou le désactive et règle son style (HUD, ou classique : une carte sombre avec plus de détails), sa taille et son opacité. **Afficher le total d'équipe (serveur de groupe)** ajoute une ligne *Équipe* : les coffres de ton équipe à ta dernière partie, additionnés par le serveur (chaque coéquipier envoie les siens). Un `+` et `2/4 joueurs` indiquent que des coéquipiers n'ont pas encore envoyé leur partie.
 
 <p align="center"><img src="docs/overlay-tab-fr.png" alt="Onglet Overlay" width="820"></p>
 
@@ -112,12 +122,11 @@ Pour le voir par-dessus le jeu, mets Fortnite en **Plein écran fenêtré** (*Pa
 
 ## Le rapport
 
-L'onglet **Rapport** se met à jour tout seul après chaque partie : total, parties, moyenne, record, trésors (et **1 trésor tous les N coffres**), coffres par jour, types de coffres et provenance de tes trésors. L'interrupteur sous les chiffres ajoute le **total d'équipe** (désactivé par défaut). Les longues parties se replient : clique sur leur titre pour les ouvrir.
+L'onglet **Rapport** se met à jour tout seul après chaque partie : total, parties, moyenne, record, trésors (et **1 trésor tous les N coffres**), coffres par jour, types de coffres et provenance de tes trésors. Les totaux d'équipe sont sur le site du serveur de groupe. Les longues parties se replient : clique sur leur titre pour les ouvrir.
 
 <p align="center"><img src="docs/report-fr.png" alt="Onglet Rapport" width="820"></p>
 
 - **Tes chances** (ouverte) : la probabilité d'avoir obtenu au moins une fois la **tenue en or** ou l'**accès à la boutique pirate** avec tous tes coffres, et pour chaque autre type de trésor. Les cotes sont celles publiées par Epic Games. Pendant une **heure du trésor**, les coffres comptent avec leurs chances augmentées, le bandeau affiche celle en cours ou la prochaine, et les cotes des trésors boostés changent en direct (en orange).
-- **Ils l'ont eu dans tes parties** (expérimental) : les accès à la boutique pirate et tenues en or obtenus par d'autres joueurs près de toi.
 - **Ta collection** : les trésors de la saison, semaine par semaine, à cocher. Un trésor sorti d'un coffre doré vu dans tes replays est coché tout seul.
 - **Trésors trouvés** et **Dernières parties** : chaque trésor et chaque partie, 10 par 10.
 
@@ -140,7 +149,10 @@ Les replays enregistrés sur un PC sont normalement ceux de son joueur : **aucun
 
 ## Mises à jour
 
-Au démarrage, le compteur vérifie sur GitHub s'il existe une nouvelle version. Si oui, l'accueil affiche **ses nouveautés dans ta langue**, avec **Installer** : elle est téléchargée, vérifiée, et le compteur redémarre. Ton historique et tes réglages sont conservés. Après la mise à jour, l'accueil affiche une fois ce qui a changé. **Rechercher une mise à jour** interroge GitHub à tout moment. Dans les réglages, tu peux choisir *proposées* (par défaut), *installées automatiquement* (seulement entre deux parties) ou *désactivées* (aucune vérification).
+> [!IMPORTANT]
+> Dans ce fork, les mises à jour sont **désactivées par défaut** : celles proposées sont les versions du projet d'origine, qui n'ont pas le serveur de groupe. Pour mettre à jour, télécharge la dernière version de ce fork.
+
+Quand elles sont activées : au démarrage, le compteur vérifie sur GitHub s'il existe une nouvelle version. Si oui, l'accueil affiche **ses nouveautés dans ta langue**, avec **Installer** : elle est téléchargée, vérifiée, et le compteur redémarre. Ton historique et tes réglages sont conservés. Après la mise à jour, l'accueil affiche une fois ce qui a changé. **Rechercher une mise à jour** interroge GitHub à tout moment. Dans les réglages, tu peux choisir *proposées*, *installées automatiquement* (seulement entre deux parties) ou *désactivées* (par défaut, aucune vérification).
 
 ## Tes données
 
@@ -193,6 +205,8 @@ ChestCounter.exe --demos <dossier>   un autre dossier de replays
 ChestCounter.exe --data <dossier>    un autre dossier de données
 ChestCounter.exe --once              analyse les replays terminés puis quitte (écrit dans le terminal)
 ChestCounter.exe --reset-config      oublie les réglages (ton historique est conservé)
+ChestCounter.exe --server <adresse> --server-key <clé>   règle le serveur de groupe
+                                     (avec --once : analyse, envoie les parties, puis quitte)
 ChestCounter.exe --overlay-preview <fichier.png>   enregistre des aperçus de l'overlay puis quitte
 ```
 
@@ -200,8 +214,14 @@ ChestCounter.exe --overlay-preview <fichier.png>   enregistre des aperçus de l'
 
 Installe le [SDK .NET 10](https://dotnet.microsoft.com/download/dotnet/10.0) (Windows x64), puis double-clique sur **`build.bat`** : l'exe est écrit dans `dist\ChestCounter.exe`. Le workflow GitHub Actions compile l'exe à chaque push et le joint à une release quand un tag `v*` est poussé, avec le texte de [`RELEASE_NOTES.md`](RELEASE_NOTES.md) (aussi affiché dans le compteur après une mise à jour).
 
+## Le serveur de groupe
+
+Pour jouer à plusieurs : chaque ami lance le compteur avec l'adresse et la clé du serveur. Après chaque partie, chaque compteur envoie **uniquement les coffres de son joueur**. Le serveur range les envois par partie (l'identifiant de partie est le même dans le replay de tous les joueurs) puis par équipe, et les additionne : un coffre n'est jamais compté deux fois. Un coéquipier sans le compteur n'est pas deviné : la partie affiche `2/4 joueurs` et un total avec `+`. Rien n'est gardé sur les joueurs hors du groupe.
+
+Le site du serveur reprend les onglets du compteur (**Serveur** : tous les coffres de tous les joueurs ; **Groupes** : les parties jouées ensemble ; **Joueur**, **Chances**, **Collection**, **Parties**, **Aide**) et donne à chaque joueur une page overlay pour OBS. Installation, clés et API : **[SERVEUR.md](SERVEUR.md)**.
+
 ## Licence et crédits
 
-[MIT](LICENSE). La lecture des replays s'appuie sur [FortniteReplayDecompressor](https://github.com/Shiqan/FortniteReplayDecompressor) de Shiqan (MIT), légèrement modifié : voir [`lib/PATCHES.md`](lib/PATCHES.md). La fenêtre utilise [Microsoft Edge WebView2](https://developer.microsoft.com/microsoft-edge/webview2/). Les titres utilisent la police [Pirata One](https://fonts.google.com/specimen/Pirata+One) (SIL Open Font License, [`src/ChestCounter/Assets/PirataOne-OFL.txt`](src/ChestCounter/Assets/PirataOne-OFL.txt)). Images et horaires des trésors : [fortnite.bot](https://fortnite.bot). Merci à [koiseka](https://github.com/koiseka) pour ses corrections du comptage ([#6](../../pull/6)).
+[MIT](LICENSE). Fork du [compteur de coffres de LED-N](https://github.com/LED-N/Fortnite-ChestCounter), dont vient tout le compteur. La lecture des replays s'appuie sur [FortniteReplayDecompressor](https://github.com/Shiqan/FortniteReplayDecompressor) de Shiqan (MIT), légèrement modifié : voir [`lib/PATCHES.md`](lib/PATCHES.md). La fenêtre utilise [Microsoft Edge WebView2](https://developer.microsoft.com/microsoft-edge/webview2/). Les titres utilisent la police [Pirata One](https://fonts.google.com/specimen/Pirata+One) (SIL Open Font License, [`src/ChestCounter/Assets/PirataOne-OFL.txt`](src/ChestCounter/Assets/PirataOne-OFL.txt)). Images et horaires des trésors : [fortnite.bot](https://fortnite.bot). Merci à [koiseka](https://github.com/koiseka) pour ses corrections du comptage ([#6](https://github.com/LED-N/Fortnite-ChestCounter/pull/6)).
 
 Ce projet n'est ni affilié, ni approuvé, ni sponsorisé par Epic Games. Fortnite est une marque déposée d'Epic Games, Inc.

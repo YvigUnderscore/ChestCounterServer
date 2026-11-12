@@ -56,7 +56,15 @@ public sealed class TeamChestCount
     public int Destroyed { get; set; }
 }
 
-/// <summary>A treasure seen in a match, from a golden chest opened by another player.</summary>
+/// <summary>A member of the player's team in a match (roster only, read from the player's own replay).</summary>
+public sealed class SquadMember
+{
+    public string Name { get; set; } = "";
+    public string? EpicId { get; set; }
+    public bool IsBot { get; set; }
+}
+
+/// <summary>A treasure seen in a match, from a golden chest opened by another player (no longer recorded since analyzer 17).</summary>
 public sealed class SeenPrize
 {
     public string Player { get; set; } = "";
@@ -107,9 +115,18 @@ public sealed class MatchRecord
     /// </summary>
     public List<SeenPrize> SeenPrizes { get; set; } = new();
 
-    /// <summary>Chests opened or destroyed by each teammate (random teammates included). Not in the player's own total.</summary>
+    /// <summary>Chests of each teammate as seen in the player's replay (before analyzer 17 only; no longer read).</summary>
     public List<TeamChestCount> TeamChests { get; set; } = new();
     public int TeamChestsOpened { get; set; }
+
+    /// <summary>The player's teammates in this match (roster only): tells the group server who to wait for.</summary>
+    public List<SquadMember> Squad { get; set; } = new();
+
+    /// <summary>Team of the player in the match: the same for every member of the team, in every member's replay.</summary>
+    public int? TeamIndex { get; set; }
+
+    /// <summary>When the recording started (UTC, clock of this PC).</summary>
+    public DateTime? ReplayStartUtc { get; set; }
 
     /// <summary>Time and distance spent in vehicles (driver or passenger).</summary>
     public int VehicleSeconds { get; set; }
@@ -142,8 +159,9 @@ public sealed class Config
     /// <summary>Minimizing the window sends the counter to the notification area (system tray) instead of the taskbar.</summary>
     public bool MinimizeToTray { get; set; }
 
-    /// <summary>"prompt" (offer new versions), "auto" (install them) or "off" (never check GitHub).</summary>
-    public string UpdateMode { get; set; } = "prompt";
+    /// <summary>"prompt" (offer new versions), "auto" (install them) or "off" (never check GitHub).
+    /// Off by default in this fork: the releases checked are those of the original project, which has no group server.</summary>
+    public string UpdateMode { get; set; } = "off";
 
     /// <summary>Notices of content.json the player closed (by id), so that they do not come back.</summary>
     public List<string> DismissedNotices { get; set; } = new();
@@ -178,6 +196,12 @@ public sealed class Config
 
     /// <summary>Show the treasures found by teammates in the report (estimate). Off by default.</summary>
     public bool ShowTeamTreasuresInReport { get; set; }
+
+    /// <summary>Group server (self-hosted, e.g. https://chests.my-nas.lan): each counted match is sent there. Empty = off.</summary>
+    public string ServerUrl { get; set; } = "";
+
+    /// <summary>Key of the group, given by whoever runs the server (GROUP_KEY).</summary>
+    public string ServerKey { get; set; } = "";
 }
 
 public sealed class TrackerData
@@ -195,6 +219,9 @@ public sealed class TrackerData
     /// the tool. "" = set before the first match gave the profile its key.
     /// </summary>
     public Dictionary<string, int> ManualChests { get; set; } = new();
+
+    /// <summary>Matches accepted by the group server: session id -> "url|analyzer version" (sent again when either changes).</summary>
+    public Dictionary<string, string> Synced { get; set; } = new();
 
     /// <summary>Treasures ticked as obtained in the collection, per profile key (saved by the graphical window).</summary>
     public Dictionary<string, List<string>> Obtained { get; set; } = new();
@@ -291,7 +318,20 @@ public sealed class Store
     public Config? LoadConfig() => Load<Config>(ConfigPath);
     public void SaveConfig(Config config) => Save(ConfigPath, config);
     /// <summary>A new history starts at the current analysis version (nothing to re-analyze).</summary>
-    public TrackerData LoadData() => Load<TrackerData>(DataPath) ?? new TrackerData { AnalyzerVersion = ReplayAnalyzer.CurrentVersion };
+    public TrackerData LoadData()
+    {
+        var data = Load<TrackerData>(DataPath) ?? new TrackerData { AnalyzerVersion = ReplayAnalyzer.CurrentVersion };
+        // Names of strangers seen by older versions are dropped: nothing about other players is kept.
+        // Teammates' chests read from the player's own replay (older versions) are dropped too: the group total
+        // now comes from the group server, where each player sends their own chests.
+        foreach (var m in data.Matches)
+        {
+            m.SeenPrizes.Clear();
+            m.TeamChests.Clear();
+            m.TeamChestsOpened = 0;
+        }
+        return data;
+    }
     public void SaveData(TrackerData data) => Save(DataPath, data);
 
     private static T? Load<T>(string path) where T : class

@@ -211,7 +211,8 @@ public sealed class ReplayAnalyzer : FortniteReplayReader.ReplayReader
     private readonly List<GrantEvent> _grants = new();
 
     /// <summary>Bump when the analysis changes so that existing replays are re-analyzed.</summary>
-    public const int CurrentVersion = 16;
+    // 17: team roster (Squad) for the group server; teammates' chests and strangers' prizes are no longer read.
+    public const int CurrentVersion = 17;
 
     private static readonly bool ProbeDebug = Environment.GetEnvironmentVariable("CHESTCOUNTER_DEBUG") == "4";
 
@@ -857,26 +858,15 @@ public sealed class ReplayAnalyzer : FortniteReplayReader.ReplayReader
         }
         var hasTeam = target?.TeamIndex is int ti && players.Any(p => p.TeamIndex == ti && p.Id != target.Id);
 
-        // Chests of each teammate, counted exactly like the player's own (same events, same rules). The only limit
-        // is what the replay holds: a chest is recorded when it is within about 150 m of the recording player, or
-        // when that player comes by later while it still shows who searched it.
-        var teamChests = new List<TeamChestCount>();
+        // Who was in the player's team (the roster only). Teammates' chests are NOT read from this replay: each
+        // player counts their own chests with their own client, and the group server adds them up per match
+        // (GameSessionId), using this roster to know who it is still waiting for.
+        var squadRoster = new List<SquadMember>();
         if (target?.TeamIndex is int squad)
         {
             foreach (var mate in players.Where(p => p.TeamIndex == squad && p.Id != target.Id))
             {
-                var matePawns = teammatePawns.Keys.Where(k => _pawnToPlayerState.TryGetValue(k, out var mps) && _playerStateToPlayerId.GetValueOrDefault(mps, -1) == mate.Id).ToHashSet();
-                var mateChests = _searches
-                    .Where(s => s.SearcherPawn is uint p && matePawns.Contains(p) && (!s.Stale || StableKey(s.ActorKey)) && ChestKinds.IsChest(ChestKinds.Classify(s.Label)))
-                    .ToList();
-                teamChests.Add(new TeamChestCount
-                {
-                    Name = mate.PlayerName ?? "",
-                    EpicId = mate.EpicId,
-                    IsBot = mate.IsBot,
-                    Chests = mateChests.Count,
-                    Destroyed = mateChests.Count(s => s.Destroyed),
-                });
+                squadRoster.Add(new SquadMember { Name = mate.PlayerName ?? "", EpicId = mate.EpicId, IsBot = mate.IsBot });
             }
         }
         var (vehicleSeconds, vehicleMeters, unrecordedLoot) = VehicleRuns(targetPawns);
@@ -1013,21 +1003,7 @@ public sealed class ReplayAnalyzer : FortniteReplayReader.ReplayReader
         }
         teamFinds.Sort((a, b) => (a.ObtainedAtSeconds ?? float.MaxValue).CompareTo(b.ObtainedAtSeconds ?? float.MaxValue));
 
-        // Golden chests of everybody else in reach: the server sends the animated chest, with its prize and the pawn that
-        // opened it, to every player around (same as for the player's own).
-        var seen = new List<SeenPrize>();
-        foreach (var pz in _prizes.Where(p => p.Pawn is uint pawn && !targetPawns.Contains(pawn) && !teammatePawns.ContainsKey(pawn)))
-        {
-            var who = _pawnToPlayerState.TryGetValue(pz.Pawn!.Value, out var ops) && _playerStateToPlayerId.TryGetValue(ops, out var opid)
-                ? players.FirstOrDefault(p => p.Id == opid)
-                : null;
-            seen.Add(new SeenPrize
-            {
-                Player = who?.PlayerName ?? (who?.IsBot == true ? "Bot" : L.T("joueur inconnu", "unknown player", "jugador desconocido")),
-                PrizeId = pz.PrizeId,
-                TimeSeconds = MathF.Round(pz.Time, 1),
-            });
-        }
+        // Other players around (not the player, not a teammate) are no longer recorded: nothing about strangers is kept.
         finds.Sort((a, b) => (a.ObtainedAtSeconds ?? float.MaxValue).CompareTo(b.ObtainedAtSeconds ?? float.MaxValue));
 
         var info = replay.Info;
@@ -1062,9 +1038,9 @@ public sealed class ReplayAnalyzer : FortniteReplayReader.ReplayReader
             Chests = chests,
             TreasureFinds = finds,
             TeamTreasureFinds = teamFinds,
-            SeenPrizes = seen,
-            TeamChests = teamChests,
-            TeamChestsOpened = teamChests.Sum(t => t.Chests),
+            Squad = squadRoster,
+            TeamIndex = target?.TeamIndex,
+            ReplayStartUtc = info?.Timestamp,
             VehicleSeconds = vehicleSeconds,
             VehicleMeters = vehicleMeters,
             UnrecordedVehicleLoot = unrecordedLoot,

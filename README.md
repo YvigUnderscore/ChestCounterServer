@@ -4,11 +4,11 @@
 
 <img src="docs/icon.png" alt="" width="88">
 
-# Fortnite Chest Counter
+# Fortnite Chest Counter · group server edition
 
-[![version](https://img.shields.io/github/v/release/LED-N/Fortnite-ChestCounter?style=flat-square&label=version&color=e8b04b)](../../releases/latest) [![downloads](https://img.shields.io/github/downloads/LED-N/Fortnite-ChestCounter/total?style=flat-square&label=downloads&color=e8b04b)](../../releases) ![Windows 10 | 11](https://img.shields.io/badge/Windows-10%20%7C%2011-3a7bd5?style=flat-square) [![license](https://img.shields.io/github/license/LED-N/Fortnite-ChestCounter?style=flat-square&label=license&color=555)](LICENSE)
+![Windows 10 | 11](https://img.shields.io/badge/Windows-10%20%7C%2011-3a7bd5?style=flat-square) ![Docker](https://img.shields.io/badge/server-Docker-2496ed?style=flat-square) [![license](https://img.shields.io/badge/license-MIT-555?style=flat-square)](LICENSE)
 
-**Counts every chest you open in Fortnite, match after match, with an overlay that blends into the game.**
+**Counts every chest you open in Fortnite, match after match, and adds up those of your group of friends on a server you host yourself.**
 
 <img src="docs/overlay-en.png" alt="Overlay between two matches" height="150">&nbsp;&nbsp;&nbsp;&nbsp;<img src="docs/overlay-match-en.png" alt="Overlay during a match" height="150">
 
@@ -17,6 +17,15 @@
 </div>
 
 ---
+
+> [!NOTE]
+> **This is a fork** of [LED-N's Chest Counter](https://github.com/LED-N/Fortnite-ChestCounter). It keeps the whole counter (replay reading, overlay, report, odds, collection) and adds a **server edition**:
+>
+> - a self-hosted **group server** for Docker (NAS, VPS, Raspberry Pi…) that adds up the chests of each team, match by match;
+> - a **website** shared with a simple link: stats of the group, of each player and of each match, odds, collection;
+> - an **OBS overlay for each player**, served by the server.
+>
+> The server is for the more technical: see **[SERVER.md](SERVER.md)** to install it. Without a server, the counter works like the original, locally only.
 
 Chest Counter reads the replays Fortnite saves after each match and keeps a running count of the chests you opened, along with the **treasure hunt treasures** you got from your chests. A transparent overlay shows your figures over the game, like the rest of the HUD, and the counter's window keeps your whole history, your chances of getting the gold outfit and your collection of treasures.
 
@@ -29,7 +38,7 @@ Fortnite can record a **replay file** of every match on your PC. Chest Counter r
 - ✅ **Only reads replay files**: the `.replay` files Fortnite writes to `%LOCALAPPDATA%\FortniteGame\Saved\Demos`. They are opened read-only and never modified.
 - ✅ **No game modification**: nothing in the Fortnite install folder is touched, no file is added or changed.
 - ✅ **No access to the game's memory**: the tool never reads, writes or injects anything into the Fortnite process. It does not interact with the running game at all.
-- ✅ **No data sent**: no login, no access to your Epic account, no telemetry. It only goes online to GitHub, to download: the treasure hunt data (weeks, odds, Treasure Hours, a few kilobytes at each start), the pictures of the treasure collection (once) and, unless you turn it off, a new version of the tool. Nothing is sent.
+- ✅ **Nothing sent without your say-so**: no login, no access to your Epic account, no telemetry. It goes online to GitHub to download the treasure hunt data (weeks, odds, Treasure Hours, a few kilobytes at each start) and the pictures of the collection (once). If you set a **group server**, it sends it after each match **your own chests** (and when you opened them), the match id, your team number and the Epic ids of your teammates, nothing else. Without a server, nothing is sent.
 - ✅ **Nothing opened to the network**: the window shows a page that the counter serves to your PC only (`127.0.0.1`, with a random key).
 - ✅ **Lightweight**: runs at low priority (and in "efficiency mode" on Windows 11), sleeps between matches, and the window's display engine is stopped while the window is in the notification area.
 
@@ -44,7 +53,7 @@ Because Fortnite only writes the replay's decryption key when the match ends, ch
 2. Turn on replays in Fortnite (see above).
 3. Run `ChestCounter.exe`.
    > Windows may show *"Windows protected your PC"* because the exe is not signed. Click *More info → Run anyway*.
-4. The counter's window opens. No questions to answer: the **Welcome** card sets the three things that matter (they stay in **Settings**), and the replays already on your PC are counted right away.
+4. The counter's window opens. The **Welcome** card sets the things that matter (they stay in **Settings**) and asks for the **group server address** and its **key**, given by whoever hosts it. Without an address, choose **Local only**: the counter works on your PC only. The replays already on your PC are counted right away.
 
 <p align="center"><img src="docs/welcome-en.png" alt="First launch: the welcome card" width="820"></p>
 
@@ -82,7 +91,8 @@ Click the **pencil** of *Chests in total* (Home or Report) to add the chests you
 | Language | French, English or Spanish. |
 | Minimize to the notification area | Yes: minimizing the window puts it next to the clock, at the bottom right of the taskbar (chest icon, sometimes behind the small ^ arrow). No (default): it stays in the taskbar like a normal window. |
 | Open with Fortnite | See below. |
-| Updates | Offered (default), installed automatically or off. |
+| Updates | Off by default (see [Updates](#updates)), offered or installed automatically. |
+| Group server | Address and key of the group's server. Empty: local mode, nothing is sent. The counter shows at once an address or a key that is refused. |
 | Replays folder | Only change it if you moved it. |
 | Account (profile) | Shown when several Fortnite accounts recorded replays on this PC. |
 
@@ -104,7 +114,7 @@ Just the figures, outlined like the game's own, with no background: put it under
 | **Ctrl+Shift+O** | Show / hide the overlay. Works anywhere, even in game. |
 | **Ctrl+Shift+L** | Lock / unlock. **Locked**: the mouse goes through it (best in game). **Unlocked**: a background shows, hold the left mouse button to move it, right-click to hide it. |
 
-To see it over the game, set Fortnite to **Windowed Fullscreen** (*Settings → Video → Window Mode*): in exclusive fullscreen, Windows cannot draw anything on top of the game. The **Overlay** tab turns it on or off and sets its style (HUD, or classic: a dark card with more details), its size and its opacity. **Show the squad total** adds a line with your chests + those of your teammates (off by default, and inaccurate: a chest a teammate opens more than 150 m away from you is not in your replays).
+To see it over the game, set Fortnite to **Windowed Fullscreen** (*Settings → Video → Window Mode*): in exclusive fullscreen, Windows cannot draw anything on top of the game. The **Overlay** tab turns it on or off and sets its style (HUD, or classic: a dark card with more details), its size and its opacity. **Show the squad total (group server)** adds a *Squad* line: the chests of your team in your last match, added up by the server (each teammate sends their own). A `+` and `2/4 players` mean that some teammates have not sent their match yet.
 
 <p align="center"><img src="docs/overlay-tab-en.png" alt="Overlay tab" width="820"></p>
 
@@ -112,12 +122,11 @@ To see it over the game, set Fortnite to **Windowed Fullscreen** (*Settings → 
 
 ## The report
 
-The **Report** tab updates by itself after each match: total, matches, average, best match, treasures (and **1 treasure every N chests**), chests per day, chest types and where your treasures come from. The switch under the figures adds the **squad total** (off by default). The long parts fold: click their title to open them.
+The **Report** tab updates by itself after each match: total, matches, average, best match, treasures (and **1 treasure every N chests**), chests per day, chest types and where your treasures come from. The squad totals are on the group server's website. The long parts fold: click their title to open them.
 
 <p align="center"><img src="docs/report-en.png" alt="Report tab" width="820"></p>
 
 - **Your chances** (open): the chance of having obtained the **gold outfit** or the **Pirate Shop Access** at least once with all your chests, and for each other kind of treasure. The odds are those published by Epic Games. During a **Treasure Hour**, chests count with their boosted odds, the banner shows the current or next one, and the odds of the boosted treasures change live (in orange).
-- **They got it in your matches** (experimental): the Pirate Shop Access and gold outfits that other players got near you.
 - **Your collection**: this season's treasures, week by week, to tick what you obtained. A treasure from a golden chest seen in your replays is ticked by itself.
 - **Treasures found** and **Latest matches**: every treasure and every match, 10 at a time.
 
@@ -140,7 +149,10 @@ The replays saved on a PC are normally its player's: **no name to type**, the to
 
 ## Updates
 
-At startup, the counter checks GitHub for a new version. If there is one, the Home tab shows **what's new in your language**, with **Install**: it is downloaded, verified, and the counter restarts. Your history and settings are kept. After the update, the Home tab shows once what has changed. **Check for updates** asks GitHub again at any time. In the settings you can choose *offered* (default), *installed automatically* (only between two matches) or *off* (no update check).
+> [!IMPORTANT]
+> In this fork, updates are **off by default**: the versions offered are those of the original project, which has no group server. To update, download the latest release of this fork.
+
+When they are on: at startup, the counter checks GitHub for a new version. If there is one, the Home tab shows **what's new in your language**, with **Install**: it is downloaded, verified, and the counter restarts. Your history and settings are kept. After the update, the Home tab shows once what has changed. **Check for updates** asks GitHub again at any time. In the settings you can choose *offered*, *installed automatically* (only between two matches) or *off* (default, no update check).
 
 ## Your data
 
@@ -193,6 +205,8 @@ ChestCounter.exe --demos <folder>    another replays folder
 ChestCounter.exe --data <folder>     another data folder
 ChestCounter.exe --once              analyze the finished replays, then quit (writes into the terminal)
 ChestCounter.exe --reset-config      forget the settings (your history is kept)
+ChestCounter.exe --server <address> --server-key <key>   set the group server
+                                     (with --once: analyze, send the matches, then quit)
 ChestCounter.exe --overlay-preview <file.png>   save previews of the overlay, then quit
 ```
 
@@ -200,8 +214,14 @@ ChestCounter.exe --overlay-preview <file.png>   save previews of the overlay, th
 
 Install the [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) (Windows x64), then double-click **`build.bat`**: the exe is written to `dist\ChestCounter.exe`. The GitHub Actions workflow builds the exe on every push and attaches it to a release when a `v*` tag is pushed, with the text of [`RELEASE_NOTES.md`](RELEASE_NOTES.md) (also shown in the counter after an update).
 
+## The group server
+
+To play together: each friend runs the counter with the server's address and key. After each match, each counter sends **only its own player's chests**. The server sorts what it receives by match (the match id is the same in every player's replay), then by team, and adds them up: a chest is never counted twice. A teammate without the counter is not guessed: the match shows `2/4 players` and a total with `+`. Nothing is kept about players outside the group.
+
+The server's website follows the tabs of the counter (**Server**: every chest of every player; **Groups**: the matches played together; **Player**, **Odds**, **Collection**, **Matches**, **Help**; in French for now) and gives each player an overlay page for OBS. Install, keys and API: **[SERVER.md](SERVER.md)**.
+
 ## License and credits
 
-[MIT](LICENSE). Replay reading is based on [FortniteReplayDecompressor](https://github.com/Shiqan/FortniteReplayDecompressor) by Shiqan (MIT), slightly modified: see [`lib/PATCHES.md`](lib/PATCHES.md). The window uses [Microsoft Edge WebView2](https://developer.microsoft.com/microsoft-edge/webview2/). The headings use the [Pirata One](https://fonts.google.com/specimen/Pirata+One) font (SIL Open Font License, [`src/ChestCounter/Assets/PirataOne-OFL.txt`](src/ChestCounter/Assets/PirataOne-OFL.txt)). Treasure pictures and schedule: [fortnite.bot](https://fortnite.bot). Thanks to [koiseka](https://github.com/koiseka) for their counting fixes ([#6](../../pull/6)).
+[MIT](LICENSE). Fork of [LED-N's Chest Counter](https://github.com/LED-N/Fortnite-ChestCounter), where the whole counter comes from. Replay reading is based on [FortniteReplayDecompressor](https://github.com/Shiqan/FortniteReplayDecompressor) by Shiqan (MIT), slightly modified: see [`lib/PATCHES.md`](lib/PATCHES.md). The window uses [Microsoft Edge WebView2](https://developer.microsoft.com/microsoft-edge/webview2/). The headings use the [Pirata One](https://fonts.google.com/specimen/Pirata+One) font (SIL Open Font License, [`src/ChestCounter/Assets/PirataOne-OFL.txt`](src/ChestCounter/Assets/PirataOne-OFL.txt)). Treasure pictures and schedule: [fortnite.bot](https://fortnite.bot). Thanks to [koiseka](https://github.com/koiseka) for their counting fixes ([#6](https://github.com/LED-N/Fortnite-ChestCounter/pull/6)).
 
 This project is not affiliated with, endorsed or sponsored by Epic Games. Fortnite is a trademark of Epic Games, Inc.

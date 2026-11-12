@@ -1,0 +1,22 @@
+# Group server for ChestCounter: docker compose up -d   (settings in .env, see .env.example and SERVEUR.md)
+services:
+  chests:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    image: chestcounter-server:latest
+    container_name: chestcounter-server
+    restart: unless-stopped
+    ports:
+      - "${PORT:-8080}:8080"
+    environment:
+      # Only read on the first start (then kept in data/keys.json). Empty GROUP_KEY = a random key is generated.
+      GROUP_KEY: ${GROUP_KEY:-}
+      VIEW_KEY: ${VIEW_KEY:-}
+      GROUP_NAME: ${GROUP_NAME:-Coffres du serveur}
+      PUBLIC_URL: ${PUBLIC_URL:-}
+      TZ: ${TZ:-Europe/Paris}
+      # Newer treasure hunt data (weeks, odds, Treasure Hours), fetched every 2 hours. Empty = only the built-in copy.
+      CONTENT_URL: ${CONTENT_URL-https://raw.githubusercontent.com/LED-N/Fortnite-ChestCounter/main/content/content.json}
+    volumes:
+      - ./data:/data

@@ -36,7 +36,7 @@ AppDomain.CurrentDomain.UnhandledException += (_, e) =>
 };
 
 // ---- Arguments ---------------------------------------------------------------------------
-string? dataDir = null, demosArg = null, langArg = null;
+string? dataDir = null, demosArg = null, langArg = null, serverArg = null, serverKeyArg = null;
 var once = false;
 var reset = false;
 var auto = false;          // opened by the standby when Fortnite started: closes itself after Fortnite
@@ -49,6 +49,8 @@ for (var i = 0; i < args.Length; i++)
         case "--data": dataDir = args[++i]; break;
         case "--demos": demosArg = args[++i]; break;
         case "--lang": langArg = args[++i]; break;
+        case "--server": serverArg = args[++i]; break;
+        case "--server-key": serverKeyArg = args[++i]; break;
         case "--once": once = true; break;
         case "--reset-config": reset = true; break;
         case "--overlay-preview": previewPath = args[++i]; break;
@@ -149,6 +151,9 @@ L.Set(config.Language);
 var appName = L.T("Compteur de coffres Fortnite", "Fortnite Chest Counter", "Contador de cofres de Fortnite");
 
 if (demosArg != null) config.DemosFolder = demosArg;
+// Group server given on the command line (also kept in the settings, like --demos).
+if (serverArg != null) config.ServerUrl = serverArg.Trim();
+if (serverKeyArg != null) config.ServerKey = serverKeyArg.Trim();
 var defaultDemos = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "FortniteGame", "Saved", "Demos");
 if (string.IsNullOrWhiteSpace(config.DemosFolder))
 {
@@ -213,6 +218,13 @@ if (once)
     ReportWriter.WriteAll(store, config, data);
     tracker.PrintSummary();
     Console.WriteLine(L.T($"  Rapport : {store.ReportPath}", $"  Report: {store.ReportPath}", $"  Informe: {store.ReportPath}"));
+    if (ServerSync.Enabled(config))
+    {
+        var syncError = ServerSync.RunToEnd(store, config, data, TimeSpan.FromMinutes(2));
+        Console.WriteLine(syncError == null
+            ? L.T($"  Serveur de groupe : {data.Synced.Count} parties envoyées", $"  Group server: {data.Synced.Count} matches sent", $"  Servidor de grupo: {data.Synced.Count} partidas enviadas")
+            : L.T($"  Serveur de groupe : erreur ({syncError})", $"  Group server: error ({syncError})", $"  Servidor de grupo: error ({syncError})"));
+    }
     return 0;
 }
 
@@ -226,6 +238,7 @@ DateTime? fortniteSeenAt = null;  // when Fortnite was first seen running this s
 var startedAt = DateTime.UtcNow;
 var uninstalled = false;      // "uninstall": a script deletes the exe once the counter has quit
 var wake = new AutoResetEvent(false);
+ServerSync.Wake = () => wake.Set();
 var log = new ActivityLog();
 UpdateInfo? update = null;
 var updateAnnounced = false;
@@ -490,6 +503,20 @@ while (!quit)
                 $"Nueva versión {pendingUpdate.Version.ToString(3)} disponible: las novedades se muestran en el inicio."));
             Console.ResetColor();
         }
+    }
+
+    // Group server: send the matches counted since the last call, read back the group figures.
+    try
+    {
+        ServerSync.Tick(store, config, data);
+        if (ServerSync.Changed)
+        {
+            UpdateOverlay(store, config, data, tracker.LiveMatch, tracker.IsLive);
+        }
+    }
+    catch (Exception ex)
+    {
+        ErrorLog.Write("Group server sync", ex);
     }
 
     if (quit)
@@ -890,7 +917,22 @@ object BuildGuiState()
         session = L.N(session.Sum(m => m.ChestsOpened)),
         sessionMatches = L.N(session.Count),
         last = last == null ? null : new { chests = L.N(last.ChestsOpened), when = L.DateTimeShort((last.MatchStartUtc ?? last.AnalyzedAtUtc).ToLocalTime()), mode = Pretty.Playlist(last.Playlist) },
-        squad = config.ShowSquadTotal && view.TeamChests > 0 ? new { total = L.N(view.SquadChests), team = L.N(view.TeamChests) } : null,
+        squad = config.ShowSquadTotal && ServerSync.Group?.LastGame is { } groupGame ? new
+        {
+            total = L.N(groupGame.TeamChests) + (groupGame.Complete ? "" : "+"),
+            team = string.Join(" · ", groupGame.Members.Select(gm => $"{gm.Name} {(gm.Chests is int gc ? L.N(gc) : "?")}")),
+            today = L.N(ServerSync.Group.TodayTeamChests),
+        } : null,
+        server = new
+        {
+            url = config.ServerUrl,
+            key = config.ServerKey,
+            enabled = ServerSync.Enabled(config),
+            ok = ServerSync.LastSuccessUtc != null,
+            error = ServerSync.LastError,
+            synced = L.T($"{data.Synced.Count} parties envoyées", $"{data.Synced.Count} matches sent", $"{data.Synced.Count} partidas enviadas"),
+            dashboard = ServerSync.Group?.DashboardUrl ?? config.ServerUrl,
+        },
         treasures = L.N(matches.Sum(m => m.TreasureFinds.Count)),
         matches = L.N(matches.Count),
         average = matches.Count > 0 ? ((double)view.CountedChests / matches.Count).ToString("F1", L.Culture) : "0",
@@ -1058,6 +1100,15 @@ object? RunGuiAction(string name, System.Text.Json.JsonElement value)
                 store.SaveData(data);
                 ReportWriter.WriteAll(store, config, data);
             }
+            settingsChanged = false;
+            break;
+        case "server":
+            config.ServerUrl = value.TryGetProperty("url", out var su) ? (su.GetString() ?? "").Trim() : "";
+            config.ServerKey = value.TryGetProperty("key", out var sk) ? (sk.GetString() ?? "").Trim() : "";
+            ServerSync.Reset();
+            break;
+        case "openServer":
+            if (ServerSync.Enabled(config)) Open(ServerSync.Group?.DashboardUrl ?? config.ServerUrl);
             settingsChanged = false;
             break;
         case "copyObsPath": CopyToClipboard(Path.GetFullPath(store.OverlayPath)); settingsChanged = false; break;

@@ -29,9 +29,10 @@ public static class OverlayModel
         var liveTreasures = live?.TreasureFinds.Count ?? 0;
 
         var total = d.TotalChests + liveChests;
-        // Squad total: only once a teammate's chest has been counted (never for a solo player).
-        var team = d.TeamChests + (live?.TeamChestsOpened ?? 0);
-        var squad = showSquad && team > 0 ? L.N(total + team) : null;
+        // Squad: chests of the player's team in the last match, added up by the group server (each member sends
+        // their own). "+" while some human teammates have not sent theirs yet. Only for a match played in a team.
+        var group = showSquad ? ServerSync.Group?.LastGame : null;
+        var squad = group != null && group.Humans > 1 ? L.N(group.TeamChests) + (group.Complete ? "" : "+") : null;
         var session = d.Matches.Where(ReportWriter.IsThisSession).ToList();
         var rows = new List<OverlayRow>();
 
@@ -54,7 +55,8 @@ public static class OverlayModel
         var treasures = d.Matches.Sum(m => m.TreasureFinds.Count) + liveTreasures;
         if (squad != null)
         {
-            rows.Add(new OverlayRow(SquadLabel, L.Count(total + team, "coffre", "chest", "cofre")));
+            rows.Add(new OverlayRow(SquadLabel, $"{squad} {(group!.TeamChests == 1 ? L.T("coffre", "chest", "cofre") : L.T("coffres", "chests", "cofres"))}",
+                Detail: group.Complete ? null : $"{group.Reported}/{group.Humans} {L.T("joueurs", "players", "jugadores")}"));
         }
         rows.Add(new OverlayRow(L.T("Trésors", "Treasures", "Tesoros"), $"★ {L.N(treasures)}", Treasure: true));
 

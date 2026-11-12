@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"><meta name="robots" content="noindex,nofollow">
+<title>Overlay</title>
+<style>
+  /* For an OBS Browser source: transparent background, outlined figures like the in-game HUD. */
+  @font-face{font-family:'Pirata One';src:url(/static/pirata-one.woff2) format('woff2')}
+  html,body{margin:0;background:transparent;overflow:hidden}
+  body{font-family:Bahnschrift,"Segoe UI",sans-serif;color:#fff;padding:10px 14px;
+    text-shadow:-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000,0 3px 6px rgba(0,0,0,.6)}
+  .big{display:flex;align-items:center;gap:12px;font-size:58px;font-weight:700;line-height:1}
+  .chest{width:48px;height:40px;filter:drop-shadow(0 0 1px #000) drop-shadow(0 2px 3px rgba(0,0,0,.6))}
+  .cap{font-size:15px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#f0c057}
+  .rows{margin-top:6px;display:grid;grid-template-columns:auto auto;gap:2px 16px;font-size:20px;font-weight:600;width:max-content}
+  .rows .l{color:#f2e6c9}
+  .rows .d{font-size:14px;color:#d8c59c}
+  .err{font-size:14px;color:#ffb4a6}
+</style>
+</head>
+<body>
+<div class="big"><svg class="chest" viewBox="0 0 48 40" aria-hidden="true"><path d="M4 16h40v20a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z" fill="#8a5a2b" stroke="#000" stroke-width="2"/><path d="M4 16c0-8 6-13 20-13s20 5 20 13z" fill="#a8743c" stroke="#000" stroke-width="2"/><path d="M4 16h40v5H4z" fill="#f0c057" stroke="#000" stroke-width="2"/><rect x="20" y="17" width="8" height="10" rx="1.5" fill="#f0c057" stroke="#000" stroke-width="2"/></svg><span id="total">…</span></div>
+<div class="cap" id="cap"></div>
+<div class="rows" id="rows"></div>
+<script src="/static/common.js"></script>
+<script>
+const ID = decodeURIComponent(location.pathname.split('/')[2]);
+async function load() {
+  try {
+    const [p, s] = await Promise.all([api('/api/players/' + encodeURIComponent(ID)), api('/api/players/' + encodeURIComponent(ID) + '/summary')]);
+    $('#total').textContent = N(p.player.chests);
+    $('#cap').textContent = p.player.name;
+    const g = s.lastGame, rows = [];
+    const me = g && g.members.find(m => m.me);
+    if (g) rows.push(['Dernière', N(me ? me.chests : 0) + ' coffres', '']);
+    if (g && g.humans > 1) rows.push(['Équipe', N(g.teamChests) + (g.complete ? '' : '+') + ' coffres', g.complete ? '' : g.reported + '/' + g.humans]);
+    rows.push(["Aujourd'hui", N(s.todayTeamChests) + ' · ' + N(s.todayGames) + ' parties', '']);
+    rows.push(['Trésors', '★ ' + N(p.player.treasures), '']);
+    $('#rows').innerHTML = rows.map(([l, v, d]) => `<span class="l">${esc(l)}</span><span>${esc(v)}${d ? ` <span class="d">${esc(d)}</span>` : ''}</span>`).join('');
+  } catch (e) {
+    $('#rows').innerHTML = `<span class="err">${esc(e.message)}</span>`;
+  }
+}
+load();
+setInterval(load, 15000);
+</script>
+</body>
+</html>

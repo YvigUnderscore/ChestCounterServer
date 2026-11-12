@@ -19,8 +19,9 @@ public static class GuiPage
         ["byHand"] = L.T("dont {0} ajoutés à la main", "{0} of them added by hand", "de ellos, {0} añadidos a mano"),
         ["session"] = L.T("Session", "Session", "Sesión"),
         ["last"] = L.T("Dernière partie", "Last match", "Última partida"),
-        ["squad"] = L.T("Total d'équipe", "Squad total", "Total del equipo"),
-        ["squadSub"] = L.T("toi + {0} par tes coéquipiers", "you + {0} by your teammates", "tú + {0} de tus compañeros"),
+        ["squad"] = L.T("Équipe (dernière partie)", "Squad (last match)", "Equipo (última partida)"),
+        ["squadSub"] = L.T("{0} · aujourd'hui : {1}", "{0} · today: {1}", "{0} · hoy: {1}"),
+        ["squadPartial"] = L.T("en attente", "waiting", "pendiente"),
         ["inaccurate"] = L.T("imprécis", "inaccurate", "impreciso"),
         ["inaccurateWhy"] = L.T("Compté dans TES replays : un coffre ouvert par un coéquipier à plus de 150 m de toi n'y est pas, et rien n'est enregistré après ton départ de la partie. Le vrai total de l'équipe est plus haut.",
             "Counted in YOUR replays: a chest a teammate opens more than 150 m away from you is not in them, and nothing is recorded once you leave the match. The real squad total is higher.",
@@ -54,6 +55,14 @@ public static class GuiPage
         ["autoCloseText"] = L.T("Fortnite est fermé : le compteur, ouvert avec Fortnite, va se fermer tout seul.", "Fortnite is closed: the counter, opened with Fortnite, is about to close by itself.", "Fortnite está cerrado: el contador, abierto con Fortnite, se va a cerrar solo."),
         ["welcomeQuick"] = L.T("Tes premiers réglages (tu les retrouves à tout moment dans Réglages) :", "Your first settings (you find them at any time in Settings):", "Tus primeros ajustes (los encuentras en cualquier momento en Ajustes):"),
         ["welcomeDone"] = L.T("C'est parti !", "Let's go!", "¡Vamos!"),
+        ["welcomeServer"] = L.T("Serveur de groupe (facultatif)", "Group server (optional)", "Servidor de grupo (opcional)"),
+        ["welcomeLocal"] = L.T("Sans adresse, le compteur fonctionne uniquement en local : tes coffres restent sur ce PC et ne sont envoyés nulle part. Tu pourras ajouter un serveur plus tard dans Réglages.",
+            "Without an address, the counter works locally only: your chests stay on this PC and are sent nowhere. You can add a server later in Settings.",
+            "Sin dirección, el contador funciona solo en local: tus cofres se quedan en este PC y no se envían a ningún sitio. Podrás añadir un servidor más tarde en Ajustes."),
+        ["welcomeNeedUrl"] = L.T("Indique l'adresse du serveur (https://…), ou choisis « Local seulement ».", "Enter the server address (https://…), or choose “Local only”.", "Indica la dirección del servidor (https://…), o elige «Solo en local»."),
+        ["welcomeConnect"] = L.T("Se connecter et commencer", "Connect and start", "Conectar y empezar"),
+        ["welcomeLocalBtn"] = L.T("Local seulement", "Local only", "Solo en local"),
+        ["serverLocal"] = L.T("Mode local : rien n'est envoyé, tes coffres restent sur ce PC.", "Local mode: nothing is sent, your chests stay on this PC.", "Modo local: no se envía nada, tus cofres se quedan en este PC."),
         ["inGame"] = L.T("Overlay en jeu", "In-game overlay", "Overlay en el juego"),
         ["inGameHelp"] = L.T("Petite fenêtre toujours au premier plan qui affiche tes coffres en jeu (Fortnite en « Plein écran fenêtré »). Ctrl+Maj+O : afficher / masquer, Ctrl+Maj+L : verrouiller.",
             "Small always-on-top window that shows your chests in game (Fortnite in \"Windowed Fullscreen\"). Ctrl+Shift+O: show / hide, Ctrl+Shift+L: lock.",
@@ -63,10 +72,20 @@ public static class GuiPage
         ["classic"] = L.T("Classique (carte sombre)", "Classic (dark card)", "Clásico (tarjeta oscura)"),
         ["size"] = L.T("Taille", "Size", "Tamaño"),
         ["opacity"] = L.T("Opacité", "Opacity", "Opacidad"),
-        ["squadToggle"] = L.T("Afficher le total d'équipe", "Show the squad total", "Mostrar el total del equipo"),
-        ["squadHelp"] = L.T("Tes coffres + ceux de tous tes coéquipiers (même aléatoires), sur l'overlay et l'accueil.",
-            "Your chests + those of all your teammates (random ones too), on the overlay and the home tab.",
-            "Tus cofres + los de todos tus compañeros (también los aleatorios), en el overlay y el inicio."),
+        ["squadToggle"] = L.T("Afficher le total d'équipe (serveur de groupe)", "Show the squad total (group server)", "Mostrar el total del equipo (servidor de grupo)"),
+        ["squadHelp"] = L.T("Coffres de ton équipe à ta dernière partie : chaque coéquipier envoie les siens au serveur de groupe, qui les additionne (Réglages → Serveur de groupe).",
+            "Chests of your squad in your last match: each teammate sends their own to the group server, which adds them up (Settings → Group server).",
+            "Cofres de tu equipo en tu última partida: cada compañero envía los suyos al servidor de grupo, que los suma (Ajustes → Servidor de grupo)."),
+        ["server"] = L.T("Serveur de groupe", "Group server", "Servidor de grupo"),
+        ["serverHelp"] = L.T("Adresse du serveur de ton groupe d'amis et sa clé (données par celui qui l'héberge). Seuls tes propres coffres sont envoyés, avec l'identifiant de la partie et de ton équipe. Vide = désactivé.",
+            "Address of your group of friends' server and its key (given by whoever hosts it). Only your own chests are sent, with the ids of the match and of your team. Empty = off.",
+            "Dirección del servidor de tu grupo de amigos y su clave (las da quien lo aloja). Solo se envían tus propios cofres, con el id de la partida y de tu equipo. Vacío = desactivado."),
+        ["serverUrl"] = L.T("Adresse (https://…)", "Address (https://…)", "Dirección (https://…)"),
+        ["serverKey"] = L.T("Clé du groupe", "Group key", "Clave del grupo"),
+        ["serverOk"] = L.T("Connecté", "Connected", "Conectado"),
+        ["serverErr"] = L.T("Erreur : {0}", "Error: {0}", "Error: {0}"),
+        ["serverWait"] = L.T("Connexion…", "Connecting…", "Conectando…"),
+        ["serverOpen"] = L.T("Ouvrir le site du groupe", "Open the group site", "Abrir el sitio del grupo"),
         ["obs"] = L.T("Overlay pour OBS (stream)", "Overlay for OBS (stream)", "Overlay para OBS (directo)"),
         ["obsSteps"] = L.T("Dans OBS : Sources → + → Navigateur, coche « Fichier local », choisis ce fichier. Largeur 360, hauteur 220 (450 × 300 en classique). Pour ne l'avoir que sur le stream, désactive l'overlay en jeu : la page continue d'être mise à jour.",
             "In OBS: Sources → + → Browser, tick \"Local file\", pick this file. Width 360, height 220 (450 × 300 for classic). To have it on the stream only, turn the in-game overlay off: the page keeps being updated.",
@@ -245,6 +264,11 @@ public static class GuiPage
         function sw(id,on,act){return `<label class="switch"><input type="checkbox" id="${id}" ${on?'checked':''} onchange="api('${act}',this.checked)"><span></span></label>`}
         function row(title,help,control){return `<div class="row"><div><div class="t">${title}</div>${help?`<div class="h">${help}</div>`:''}</div><div>${control}</div></div>`}
         function sel(act,value,opts){return `<select onchange="api('${act}',this.value)">${opts.map(o=>`<option value="${esc(o[0])}" ${String(o[0])===String(value)?'selected':''}>${esc(o[1])}</option>`).join('')}</select>`}
+        // First launch: with an address, the group server is saved and used; without, the counter stays local only.
+        async function welcomeGo(connect){const url=$('#wUrl').value.trim(),key=$('#wKey').value.trim();
+          if(connect){if(!/^https?:\/\/./i.test(url)){$('#wLocal').textContent=S.txt.welcomeNeedUrl;$('#wUrl').focus();return}await api('server',{url,key})}
+          else await api('server',{url:'',key:''});
+          await api('dismissWelcome')}
         function setTab(t){tab=t;try{localStorage.setItem('cc-gui-tab',t)}catch(e){}render(true)}
         function render(force){
           const T=S.txt;document.documentElement.lang=S.lang;
@@ -280,14 +304,18 @@ public static class GuiPage
             ${row(esc(T.language),'',sel('language',s.language,s.languages))}
             ${row(esc(T.inGame),esc(T.inGameHelp),sw('wov',S.overlay.show,'showOverlay'))}
             ${s.windowed?row(esc(T.tray),esc(T.trayHelp),sw('wtr',s.minimizeToTray,'minimizeToTray')):''}
-            <div class="actions" style="margin-top:12px"><button class="b main" onclick="api('dismissWelcome')">${esc(T.welcomeDone)}</button></div></div>`}
+            <div class="t" style="font-weight:600;margin-top:16px">${esc(T.welcomeServer)}</div>
+            <p class="note" style="color:var(--cmuted);margin:4px 0 8px">${esc(T.serverHelp)}</p>
+            <div class="actions"><input type="text" id="wUrl" placeholder="${esc(T.serverUrl)}" value="${esc(S.server.url)}"><input type="password" id="wKey" placeholder="${esc(T.serverKey)}" value="${esc(S.server.key)}"></div>
+            <p class="note" id="wLocal" style="margin:8px 0 0">${esc(T.welcomeLocal)}</p>
+            <div class="actions" style="margin-top:12px"><button class="b main" onclick="welcomeGo(true)">${esc(T.welcomeConnect)}</button><button class="b" onclick="welcomeGo(false)">${esc(T.welcomeLocalBtn)}</button></div></div>`}
           if(S.progress)h+=`<div class="card"><b>${esc(T.analyzing)} ${S.progress.done} / ${S.progress.total}</b><div class="bar"><i style="width:${Math.round(100*S.progress.done/Math.max(1,S.progress.total))}%"></i></div></div>`;
           if(S.whatsNew&&S.whatsNew.length)h+=`<div class="card"><h2 class="pirate" style="color:#7a4a1e">${esc(fmt(T.whatsNew,S.version))}</h2><ul>${S.whatsNew.map(n=>`<li>${esc(n)}</li>`).join('')}</ul><button class="b main" onclick="api('dismissWhatsNew')">${esc(T.ok)}</button></div>`;
           if(S.update)h+=`<div class="card"><h2 class="pirate">${esc(fmt(T.newVersion,S.update.version))}</h2><ul>${S.update.notes.map(n=>`<li>${esc(n)}</li>`).join('')}</ul><button class="b main" onclick="api('installUpdate')">${esc(T.install)}</button></div>`;
           h+=`<section class="tiles"><div class="tile hero"><button type="button" class="editbtn" onclick="openManual()" title="${esc(T.editChests)}" aria-label="${esc(T.editChests)}">__PENCIL__</button><div class="l">${esc(T.total)}</div><div class="v num">${esc(S.total)}</div><div class="l">${esc(T.totalSub)}${S.manual?'<br>'+esc(fmt(T.byHand,S.manual)):''}</div></div>
             <div class="tile"><div class="v num">${esc(S.session)}</div><div class="l">${esc(T.session)} · ${esc(S.sessionMatches)} ${esc(T.matches)}</div></div>
             <div class="tile"><div class="v num">${esc(S.last?S.last.chests:'—')}</div><div class="l">${esc(T.last)}${S.last?'<br>'+esc(S.last.when)+' · '+esc(S.last.mode):''}</div></div>
-            ${S.squad?`<div class="tile"><div class="v num">${esc(S.squad.total)}</div><div class="l">${esc(T.squad)}<span class="badge" title="${esc(T.inaccurateWhy)}">${esc(T.inaccurate)}</span><br>${esc(fmt(T.squadSub,S.squad.team))}</div></div>`:''}
+            ${S.squad?`<div class="tile"><div class="v num">${esc(S.squad.total)}</div><div class="l">${esc(T.squad)}<br>${esc(fmt(T.squadSub,S.squad.team,S.squad.today))}</div></div>`:''}
             <div class="tile"><div class="v num">★ ${esc(S.treasures)}</div><div class="l">${esc(T.treasures)} · ${esc(S.matches)} ${esc(T.matches)} · ${esc(fmt(T.perMatch,S.average))}</div></div></section>`;
           h+=`<div class="actions"><button class="b main" onclick="setTab('report')">${esc(T.openReport)}</button>`;
           if(S.overlay.running)h+=`<button class="b" onclick="api('toggleOverlayVisible')">${esc(S.overlay.visible?T.hideOverlay:T.showOverlay)}</button><button class="b" onclick="api('toggleOverlayLock')">${esc(S.overlay.locked?T.unlock:T.lock)}</button>`;
@@ -300,7 +328,7 @@ public static class GuiPage
           let h=`<div class="card">${row(esc(T.inGame),esc(T.inGameHelp),sw('ov',o.show,'showOverlay'))}
             ${row(esc(T.style),'',sel('overlayStyle',o.style,[['hud',T.hud],['classic',T.classic]]))}
             ${o.show?row(esc(T.size),'',sel('overlaySize',o.size,o.sizes.map(x=>[x,x+' %'])))+row(esc(T.opacity),'',sel('overlayOpacity',o.opacity,o.opacities.map(x=>[x,x+' %']))):''}
-            ${row(esc(T.squadToggle)+`<span class="badge" title="${esc(T.inaccurateWhy)}">${esc(T.inaccurate)}</span>`,esc(T.squadHelp)+'<br>'+esc(T.inaccurateWhy),sw('sq',o.squad,'showSquadTotal'))}</div>
+            ${row(esc(T.squadToggle),esc(T.squadHelp),sw('sq',o.squad,'showSquadTotal'))}</div>
             <section><h2 class="pirate">${esc(T.obs)}</h2><div class="card"><span class="path">${esc(S.paths.overlay)}</span><p class="note" style="color:var(--cmuted)">${esc(T.obsSteps)}</p>
             <div class="actions"><button class="b main" onclick="copyObs()">${esc(copied?T.copied:T.copy)}</button><button class="b" onclick="window.open('/overlay?t='+TOKEN,'_blank')">${esc(T.preview)}</button></div></div></section>`;
           return h;
@@ -313,6 +341,12 @@ public static class GuiPage
             ${s.canStartWithFortnite?row(esc(T.withFortnite),esc(T.withFortniteHelp),sw('wf',s.startWithFortnite,'startWithFortnite')):''}
             ${row(esc(T.updates),'',sel('updateMode',s.updateMode,[['prompt',T.upPrompt],['auto',T.upAuto],['off',T.upOff]]))}
             <div class="row"><div style="flex:1"><div class="t">${esc(T.demos)}</div>${s.demosExists?'':`<div class="h">${esc(T.demosMissing)}</div>`}<div class="actions" style="margin-top:6px"><input type="text" id="demos" value="${esc(s.demos)}"><button class="b" onclick="api('demosFolder',$('#demos').value)">${esc(T.save)}</button></div></div></div></div>`;
+          const v=S.server;
+          h+=`<section><h2 class="pirate">${esc(T.server)}</h2><div class="card"><p class="note" style="color:var(--cmuted);margin-top:0">${esc(T.serverHelp)}</p>
+            <div class="actions"><input type="text" id="srvUrl" placeholder="${esc(T.serverUrl)}" value="${esc(v.url)}"><input type="password" id="srvKey" placeholder="${esc(T.serverKey)}" value="${esc(v.key)}">
+            <button class="b main" onclick="api('server',{url:$('#srvUrl').value,key:$('#srvKey').value})">${esc(T.save)}</button>
+            ${v.enabled&&v.dashboard?`<button class="b" onclick="api('openServer')">${esc(T.serverOpen)}</button>`:''}</div>
+            <p class="note">${v.enabled?(v.error?esc(fmt(T.serverErr,v.error)):v.ok?esc(T.serverOk)+' · '+esc(v.synced):esc(T.serverWait)):esc(T.serverLocal)}</p></div></section>`;
           return h;
         }
         // Chests added by hand (and the estimate from the Career matches): p = 's' in the settings, 'd' in the edit box.

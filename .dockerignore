@@ -1,0 +1,7 @@
+# Only what the server image needs (docker build context = the repository).
+*
+!server/requirements.txt
+!server/app/
+!content/content.json
+!assets/treasures/
+**/__pycache__
