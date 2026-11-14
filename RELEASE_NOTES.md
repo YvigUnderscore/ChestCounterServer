@@ -8,6 +8,7 @@
 - **From Chest Counter 1.5.1** (LED-N): clearer *Your chances* with countdowns (thanks koiseka, LED-N/Fortnite-ChestCounter#23), times in local time or UTC on a 12- or 24-hour clock, the last match stays on the overlay during the next one, the pencil of *Chests in total* keeps a history, and the Activity log no longer jumps to the top (thanks tbpg58, LED-N/Fortnite-ChestCounter#24)
 - **Fix**: closed chests broken without touching them are counted again; the replays still on your PC are analyzed again and their matches sent to the server again
 - The server image is now built and attached to each release by GitHub
+- **Server fix (server.2)**: matches sent by older builds of the counter, without the time of each chest, count in the week of their match (without Treasure Hour boost) instead of being left out of the weekly odds
 
 Windows may show *"Windows protected your PC"* (unsigned exe): *More info → Run anyway*.
 
@@ -23,6 +24,7 @@ Windows may show *"Windows protected your PC"* (unsigned exe): *More info → Ru
 - **Du compteur 1.5.1** (LED-N) : *Tes chances* plus claires avec des comptes à rebours (merci koiseka, LED-N/Fortnite-ChestCounter#23), heures en heure locale ou UTC sur 12 ou 24 heures, la dernière partie reste sur l'overlay pendant la suivante, le crayon de *Coffres au total* garde un historique, et le journal d'activité ne remonte plus tout seul (merci tbpg58, LED-N/Fortnite-ChestCounter#24)
 - **Correction** : les coffres fermés cassés sans les toucher sont de nouveau comptés ; les replays encore sur ton PC sont réanalysés et leurs parties renvoyées au serveur
 - L'image du serveur est maintenant construite et jointe à chaque version par GitHub
+- **Correction du serveur (server.2)** : les parties envoyées par d'anciennes versions du compteur, sans l'heure de chaque coffre, comptent dans la semaine de leur partie (sans bonus d'heure du trésor) au lieu d'être exclues des chances de la semaine
 
 Windows peut afficher « Windows a protégé votre ordinateur » (exe non signé) : *Informations complémentaires → Exécuter quand même*.
 
@@ -38,5 +40,6 @@ Windows peut afficher « Windows a protégé votre ordinateur » (exe non signé
 - **Del contador 1.5.1** (LED-N): *Tus probabilidades* más claras con cuentas atrás (gracias koiseka, LED-N/Fortnite-ChestCounter#23), horas en hora local o UTC con reloj de 12 o 24 horas, la última partida sigue en el overlay durante la siguiente, el lápiz de *Cofres en total* guarda un historial, y el registro de Actividad ya no vuelve solo arriba (gracias tbpg58, LED-N/Fortnite-ChestCounter#24)
 - **Corrección**: los cofres cerrados rotos sin tocarlos vuelven a contarse; las repeticiones que siguen en tu PC se analizan de nuevo y sus partidas se reenvían al servidor
 - La imagen del servidor ahora la construye GitHub y la adjunta a cada versión
+- **Corrección del servidor (server.2)**: las partidas enviadas por versiones antiguas del contador, sin la hora de cada cofre, cuentan en la semana de su partida (sin bonificación de hora del tesoro) en lugar de quedar fuera de las probabilidades semanales
 
 Windows puede mostrar «Windows protegió tu PC» (exe sin firmar): *Más información → Ejecutar de todas formas*.

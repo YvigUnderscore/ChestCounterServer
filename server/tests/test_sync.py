@@ -170,13 +170,16 @@ def test_chances_weekly_like_the_counter(client):
         reports = db.reports_of_player(c, "A")
     ch = treasures.chances(reports, now=hour + timedelta(minutes=30))   # during week 1
     assert ch["chests"] == 25 and ch["weekChests"] == 14 and ch["boostedChests"] == 10 and ch["week"]["number"] == 1
+    # The match sent without chest times (OLD, week 2) counts in week 2 from its start, never boosted.
+    week2 = treasures.chances(reports, now=hour + timedelta(days=4, hours=2))
+    assert week2["weekChests"] == 11 and week2["boostedChests"] == 10
     odds = {o["kind"]: o for o in ch["odds"]}
     p = 1 / odds["outfit"]["oneIn"]
     # Weekly: only this week's 14 chests (10 boosted), never the untimed ones.
     assert odds["outfit"]["chests"] == 14
     assert abs(odds["outfit"]["chance"] - (1 - (1 - p * 7.5) ** 10 * (1 - p) ** 4)) < 1e-12
-    # Season line: every timed chest of the hunt (20).
-    assert abs(odds["outfit"]["season"] - (1 - (1 - p * 7.5) ** 10 * (1 - p) ** 10)) < 1e-12
+    # Season line of a weekly treasure: the untimed match (OLD, week 2) counts too, without boost: 25 chests.
+    assert abs(odds["outfit"]["season"] - (1 - (1 - p * 7.5) ** 10 * (1 - p) ** 15)) < 1e-12
     # Pirate Shop Access: every chest of the hunt, untimed ones included (25), with its own boost (x1.5).
     q = 1 / odds["pirate-shop"]["oneIn"]
     assert odds["pirate-shop"]["chests"] == 25 and odds["pirate-shop"]["season"] is None

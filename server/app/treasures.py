@@ -135,12 +135,18 @@ def boost(kind: str, at: datetime, hours) -> float:
 
 # --- odds -------------------------------------------------------------------------------------------------------
 
-def at_least_once(one_in: int, chest_times: list[datetime], plain: int, kind: str, hours) -> float:
+def _boost_of(chest, kind: str, hours) -> float:
+    """A chest is (time, exact). Only a chest whose own time is known gets the Treasure Hour boost."""
+    t, exact = chest
+    return boost(kind, t, hours) if exact else 1
+
+
+def at_least_once(one_in: int, chests: list, plain: int, kind: str, hours) -> float:
     """1 − Π(1 − p × boost): each chest with the boost of the moment it was opened, plus `plain` chests at normal odds."""
     p = 1.0 / one_in
     total = max(0, plain) * math.log1p(-p)
-    for t in chest_times:
-        total += math.log1p(-min(0.999, p * boost(kind, t, hours)))
+    for c in chests:
+        total += math.log1p(-min(0.999, p * _boost_of(c, kind, hours)))
     return -math.expm1(total)
 
 
@@ -148,23 +154,29 @@ def chests_for(one_in: int, chance: float) -> int:
     return math.ceil(math.log(1 - chance) / math.log1p(-1.0 / one_in))
 
 
-def chest_times_of(reports) -> tuple[list[datetime], int]:
-    """When each chest of these reports was opened (UTC), and how many have no known time (older clients)."""
-    times, plain = [], 0
+def chest_times_of(reports) -> tuple[list[tuple[datetime, bool]], int]:
+    """
+    The chests of these reports as (when, exact): exact when the client sent the time of each chest; otherwise
+    (clients older than the chest times) the start of the match, which gives the right week but no Treasure Hour
+    boost. `plain` counts the chests of a report without even a start time.
+    """
+    chests, plain = [], 0
     for r in reports:
         seconds = json.loads(r["chest_seconds"] or "[]")
         start = _dt(r["start_utc"])
-        if start is None or len(seconds) != r["chests"]:
+        if start is None:
             plain += r["chests"]
-            continue
-        times += [start + timedelta(seconds=s) for s in seconds]
-    return times, plain
+        elif len(seconds) == r["chests"]:
+            chests += [(start + timedelta(seconds=s), True) for s in seconds]
+        else:
+            chests += [(start, False)] * r["chests"]
+    return chests, plain
 
 
 def _average(one_in: int, times: list[datetime], plain: int, kind: str, hours) -> float:
     """Expected number of treasures (with the Treasure Hour boosts, like "at least one")."""
     p = 1.0 / one_in
-    return max(0, plain) * p + sum(min(0.999, p * boost(kind, t, hours)) for t in times)
+    return max(0, plain) * p + sum(min(0.999, p * _boost_of(c, kind, hours)) for c in times)
 
 
 def chances(reports, now: datetime | None = None) -> dict | None:
@@ -173,7 +185,7 @@ def chances(reports, now: datetime | None = None) -> dict | None:
     computes it since 1.5.1: chests opened before the hunt are left out; a weekly treasure (gold outfit, vehicle,
     pickaxe, jam track, loading screen) only comes from the chests of its week, so its chance is the current week's
     (the whole hunt is given as "season"); the Pirate Shop Access and gizmos count every chest of the hunt. Chests
-    without a time (sent by an older client) only count for those two.
+    sent without their own time (older clients) count from the start of their match, without Treasure Hour boost.
     """
     c = current()
     if not c or not c.get("weeks"):
@@ -183,8 +195,8 @@ def chances(reports, now: datetime | None = None) -> dict | None:
     hunt_start = min(s for s, _, _ in weeks)
     week = next(((s, e, w) for s, e, w in weeks if s <= now < e), None)
     times, plain = chest_times_of(reports)
-    times = [t for t in times if t >= hunt_start]
-    week_times = [t for t in times if week and week[0] <= t < week[1]]
+    times = [c for c in times if c[0] >= hunt_start]
+    week_times = [c for c in times if week and week[0] <= c[0] < week[1]]
     chests = len(times) + plain
     hours = _hours(c)
     out = []
@@ -201,7 +213,7 @@ def chances(reports, now: datetime | None = None) -> dict | None:
             # For a weekly treasure: any week's item, over the whole hunt.
             "season": at_least_once(o["oneIn"], times, 0, o["kind"], hours) if weekly else None,
         })
-    boosted = sum(1 for t in times if boost("outfit", t, hours) > 1)
+    boosted = sum(1 for c in times if _boost_of(c, "outfit", hours) > 1)
     return {
         "chests": chests, "weekChests": len(week_times), "boostedChests": boosted,
         "week": {"number": week[2]["number"], "title": week[2].get("title", ""), "end": week[2]["end"]} if week else None,
