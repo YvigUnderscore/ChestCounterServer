@@ -10,17 +10,17 @@
 <header class="top">
   <div class="bar">
     <a class="brand pirate" href="/" id="brand">Coffres du serveur</a>
-    <label class="me">Joueur <select id="me" aria-label="Joueur affiché"></select></label>
+    <div class="pickers">
+      <label class="me"><span id="meLabel">Joueur</span> <select id="me" aria-label="Joueur"></select></label>
+      <select id="lang" aria-label="Langue"><option value="fr">Français</option></select>
+    </div>
   </div>
   <nav class="tabs" id="tabs" aria-label="Sections"></nav>
 </header>
-<main id="view"><p class="empty">Chargement…</p></main>
-<footer class="foot">
-  Chaque joueur envoie uniquement ses propres coffres, lus dans ses replays après chaque partie : un coffre n'est jamais compté deux fois.
-  « + » : des coéquipiers n'ont pas envoyé leur partie, le total est un minimum.<br>
-  Projet de fans non officiel, ni affilié ni approuvé par Epic Games. Fortnite est une marque d'Epic Games, Inc. Images et horaires des trésors : fortnite.bot.
-</footer>
+<main id="view"><p class="empty">…</p></main>
+<footer class="foot"><span id="footText"></span><br><span id="footLegal"></span></footer>
 <script src="/static/common.js"></script>
+<script src="/static/i18n.js"></script>
 <script src="/static/app.js"></script>
 </body>
 </html>

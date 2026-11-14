@@ -14,6 +14,7 @@ services:
       GROUP_KEY: ${GROUP_KEY:-}
       VIEW_KEY: ${VIEW_KEY:-}
       GROUP_NAME: ${GROUP_NAME:-Coffres du serveur}
+      DEFAULT_LANG: ${DEFAULT_LANG:-fr}
       PUBLIC_URL: ${PUBLIC_URL:-}
       TZ: ${TZ:-Europe/Paris}
       # Newer treasure hunt data (weeks, odds, Treasure Hours), fetched every 2 hours. Empty = only the built-in copy.

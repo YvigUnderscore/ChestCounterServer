@@ -211,8 +211,9 @@ public sealed class ReplayAnalyzer : FortniteReplayReader.ReplayReader
     private readonly List<GrantEvent> _grants = new();
 
     /// <summary>Bump when the analysis changes so that existing replays are re-analyzed.</summary>
-    // 17: team roster (Squad) for the group server; teammates' chests and strangers' prizes are no longer read.
-    public const int CurrentVersion = 17;
+    // 17 (1.5.1): closed chests broken without an instigator counted again.
+    // 18 (group server edition): + team roster (Squad); teammates' chests and strangers' prizes are no longer read.
+    public const int CurrentVersion = 18;
 
     private static readonly bool ProbeDebug = Environment.GetEnvironmentVariable("CHESTCOUNTER_DEBUG") == "4";
 
@@ -540,10 +541,6 @@ public sealed class ReplayAnalyzer : FortniteReplayReader.ReplayReader
                         _lastOpener[containerKey] = openedBy;
                         _searches.Add(new SearchEvent(Now, containerKey, containerLabel, openedBy, Stale: stale));
                     }
-                    if (Channels[channelIndex]?.ActorId is uint openedActor)
-                    {
-                        _openedContainers.Add(openedActor);
-                    }
                     else if (Debug == "1")
                     {
                         Console.Error.WriteLine($"DBG seen-again {Now,7:F1}s {containerLabel} {containerKey}");
@@ -559,10 +556,6 @@ public sealed class ReplayAnalyzer : FortniteReplayReader.ReplayReader
                     _lastOpener[containerKey] = destroyer;
                     _searches.Add(new SearchEvent(Now, containerKey, containerLabel, destroyer, Destroyed: true, Stale: stale));
                 }
-                if (container.bDestroyed && Channels[channelIndex]?.ActorId is uint brokenActor)
-                {
-                    _openedContainers.Add(brokenActor);
-                }
                 else if (container.bDestroyed && container.SearchingPawn is null or 0 && !stale && StableKey(containerKey)
                     && (!_searched.Contains(containerKey) || (_channelSearched.TryGetValue(channelIndex, out var opened) && !opened))
                     && Channels[channelIndex]?.ActorId is uint orphanActor && _orphanChannels.Add(channelIndex))
@@ -570,6 +563,13 @@ public sealed class ReplayAnalyzer : FortniteReplayReader.ReplayReader
                     // A closed chest destroyed without an instigator (its support was broken, it fell...). Who did it is
                     // worked out at the end, from the loot that spilled and who stood right there (ResolveOrphans).
                     _orphans.Add(new OrphanDestroy(Now, containerKey, containerLabel, orphanActor));
+                }
+
+                // Shown opened or broken (counted or not): the loot it dropped is explained (see VehicleRuns). Kept out
+                // of the chain above, which decides what is counted.
+                if ((container.bAlreadySearched == true || container.bDestroyed) && Channels[channelIndex]?.ActorId is uint shownOpen)
+                {
+                    _openedContainers.Add(shownOpen);
                 }
                 break;
 

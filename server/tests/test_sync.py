@@ -56,7 +56,7 @@ def test_squad_adds_each_players_own_chests(client):
     names = [m["name"] for m in t["members"]]
     assert names[:3] == ["Alice", "Bob", "Cleo"]
     # The random teammate is never named (no data about strangers), and their chests are unknown, not guessed.
-    assert t["members"][3] == {"epicId": None, "name": "Coéquipier hors groupe", "chests": None, "destroyed": None, "eliminations": None, "treasures": None}
+    assert t["members"][3] == {"epicId": None, "name": None, "outside": True, "chests": None, "destroyed": None, "eliminations": None, "treasures": None}
 
 
 def test_complete_duo(client):
@@ -93,14 +93,14 @@ def test_reports_that_disagree_are_flagged(client):
     send(client, match("S6", "A", "Alice", 5, squad=[("B", False)], placement=2), match("S6", "B", "Bob", 3, squad=[("A", False)], placement=7))
     [t] = teams(client, "S6")
     assert not t["consistent"]
-    assert "classements différents" in t["issues"]
+    assert {"code": "placement"} in t["issues"]
 
 
 def test_roster_missing_a_reporter_is_flagged(client):
     send(client, match("S7", "A", "Alice", 5, squad=[("B", False)]), match("S7", "B", "Bob", 3, squad=[("Z", False)]))
     [t] = teams(client, "S7")
     assert not t["consistent"]
-    assert any("Bob ne liste pas Alice" in i for i in t["issues"])
+    assert {"code": "roster", "player": "Bob", "missing": ["Alice"]} in t["issues"]
 
 
 def test_bots_are_not_waited_for(client):
@@ -155,22 +155,35 @@ def test_invalid_payload_is_refused(client):
     assert send(client, match("S12", "A", "Alice", 10_000)).status_code == 422
 
 
-def test_chances_use_the_time_of_each_chest(client):
-    # 10 chests during a Treasure Hour of content.json (outfit x7.5), 10 others at normal odds, 5 without times.
+def test_chances_weekly_like_the_counter(client):
+    from app import treasures
+    # Week 1 runs 2026-11-01 14:00 -> 11-08 14:00 UTC; a Treasure Hour on 11-07 19:00-21:00 (outfit x7.5).
     hour = datetime(2026, 11, 7, 19, 30, tzinfo=timezone.utc)
     send(client,
-         match("TH", "A", "Alice", 10, start=hour, chestSeconds=list(range(10))),
-         match("NORMAL", "A", "Alice", 10, start=hour + timedelta(days=3), chestSeconds=list(range(10))),
-         match("OLD", "A", "Alice", 5, start=hour + timedelta(days=4)))
-    ch = client.get("/api/players/A").json()["chances"]
-    assert ch["chests"] == 25 and ch["boostedChests"] == 10
-    outfit = next(o for o in ch["odds"] if o["kind"] == "outfit")
-    p = 1 / outfit["oneIn"]
-    expected = 1 - (1 - p * 7.5) ** 10 * (1 - p) ** 15
-    assert abs(outfit["chance"] - expected) < 1e-12
-    assert outfit["big"] and outfit["half"] > 1_000_000
-    group = client.get("/api/overview").json()["chances"]
-    assert group["chests"] == 25
+         match("TH", "A", "Alice", 10, start=hour, chestSeconds=list(range(10))),                   # week 1, boosted
+         match("W1", "A", "Alice", 4, start=hour - timedelta(days=2), chestSeconds=list(range(4))),  # week 1
+         match("W2", "A", "Alice", 6, start=hour + timedelta(days=3), chestSeconds=list(range(6))),  # week 2
+         match("OLD", "A", "Alice", 5, start=hour + timedelta(days=4)),                              # no times (old client)
+         match("BEFORE", "A", "Alice", 7, start=datetime(2026, 10, 20, tzinfo=timezone.utc), chestSeconds=list(range(7))))  # before the hunt
+    import app.db as db
+    with db.tx() as c:
+        reports = db.reports_of_player(c, "A")
+    ch = treasures.chances(reports, now=hour + timedelta(minutes=30))   # during week 1
+    assert ch["chests"] == 25 and ch["weekChests"] == 14 and ch["boostedChests"] == 10 and ch["week"]["number"] == 1
+    odds = {o["kind"]: o for o in ch["odds"]}
+    p = 1 / odds["outfit"]["oneIn"]
+    # Weekly: only this week's 14 chests (10 boosted), never the untimed ones.
+    assert odds["outfit"]["chests"] == 14
+    assert abs(odds["outfit"]["chance"] - (1 - (1 - p * 7.5) ** 10 * (1 - p) ** 4)) < 1e-12
+    # Season line: every timed chest of the hunt (20).
+    assert abs(odds["outfit"]["season"] - (1 - (1 - p * 7.5) ** 10 * (1 - p) ** 10)) < 1e-12
+    # Pirate Shop Access: every chest of the hunt, untimed ones included (25), with its own boost (x1.5).
+    q = 1 / odds["pirate-shop"]["oneIn"]
+    assert odds["pirate-shop"]["chests"] == 25 and odds["pirate-shop"]["season"] is None
+    assert abs(odds["pirate-shop"]["chance"] - (1 - (1 - q * 1.5) ** 10 * (1 - q) ** 15)) < 1e-12
+    assert abs(odds["outfit"]["never"] + odds["outfit"]["chance"] - 1) < 1e-15
+    assert client.get("/api/players/A").json()["chances"]["odds"][0]["kind"] == "outfit"
+    assert client.get("/api/content").json()["defaultLang"] == "fr"
 
 
 def test_collection_auto_and_manual(client):

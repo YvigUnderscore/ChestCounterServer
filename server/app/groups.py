@@ -16,7 +16,6 @@ import json
 from datetime import datetime
 from typing import Iterable
 
-UNKNOWN_MATE = "Coéquipier hors groupe"
 
 
 class _UnionFind:
@@ -77,22 +76,22 @@ def _team(session_id: str, rows: list, squads: dict[str, list], names: dict[str,
     issues = []
     indexes = {_get(r, "team_index") for r in rows if _get(r, "team_index") is not None}
     if len(indexes) > 1:
-        issues.append("index d'équipe différent selon les replays")
+        issues.append({"code": "teamIndex"})
     for pid in reporters:
         listed = {m["epicId"] for m in squads[pid]}
         missing = [o for o in reporters if o != pid and o not in listed]
         # An empty roster says nothing (match analyzed by an older version, or replay without the team): not an issue.
         if missing and listed:
-            issues.append(f"{names.get(pid) or pid} ne liste pas {', '.join(names.get(o) or o for o in missing)} dans son équipe")
+            issues.append({"code": "roster", "player": names.get(pid) or pid, "missing": [names.get(o) or o for o in missing]})
     placements = {_get(r, "placement") for r in rows if _get(r, "placement") is not None}
     if len(placements) > 1:
-        issues.append("classements différents")
+        issues.append({"code": "placement"})
     playlists = {_get(r, "playlist") for r in rows if _get(r, "playlist")}
     if len(playlists) > 1:
-        issues.append("modes de jeu différents")
+        issues.append({"code": "playlist"})
     starts = [datetime.fromisoformat(s) for s in (_get(r, "start_utc") for r in rows) if s]
     if starts and (max(starts) - min(starts)).total_seconds() > 600:
-        issues.append("heures de début trop éloignées")
+        issues.append({"code": "start"})
 
     members = sorted(
         ({"epicId": _get(r, "epic_id"), "name": names.get(_get(r, "epic_id")) or "?", "chests": _get(r, "chests"),
@@ -103,7 +102,7 @@ def _team(session_id: str, rows: list, squads: dict[str, list], names: dict[str,
     # Teammates who sent nothing for this match: named only when they belong to the group (they have a client).
     for pid in sorted(humans - set(reporters)):
         known = names.get(pid)
-        members.append({"epicId": pid if known else None, "name": known or UNKNOWN_MATE, "chests": None,
+        members.append({"epicId": pid if known else None, "name": known, "outside": not known, "chests": None,
                         "destroyed": None, "eliminations": None, "treasures": None})
 
     # A "group" match: at least two players of this server played it in the same team (whether or not they all

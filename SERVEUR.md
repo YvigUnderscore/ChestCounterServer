@@ -80,6 +80,7 @@ docker compose exec chests python -m app.admin set group <clé> # choisir la cl�
 | Variable | Rôle |
 |---|---|
 | `GROUP_NAME` | Nom affiché en haut du site. |
+| `DEFAULT_LANG` | Langue du site pour un visiteur qui n'en a pas choisi : `fr` (par défaut), `en` ou `es`. |
 | `PUBLIC_URL` | Adresse publique du site (ex. `https://coffres.example.org`) : sert aux liens du compteur et de `admin show`. |
 | `PORT` | Port publié (8080 par défaut). |
 | `TZ` | Fuseau pour « aujourd'hui » et les coffres par jour (`Europe/Paris` par défaut). |
@@ -94,12 +95,12 @@ Les onglets reprennent ceux du compteur :
 - **Serveur** : tout ce que les joueurs du serveur ont envoyé, toutes parties confondues (seul, en groupe ou avec des inconnus) : total, coffres du jour, chances du serveur (au moins un joueur a eu la tenue en or ou l'accès à la boutique pirate), coffres par joueur, coffres par jour, dernières parties.
 - **Groupes** : uniquement les parties **en groupe**, c'est-à-dire où au moins deux joueurs du serveur étaient dans la même équipe (qu'ils les aient toutes envoyées ou non). Chaque combinaison de joueurs (« Alice · Bob », « Alice · Bob · Cléo »…) avec ses parties, ses coffres, sa moyenne et son record, puis les coffres de chaque joueur en groupe.
 - **Joueur** : ses coffres en tout, en groupe et hors groupe, ses groupes, ses dernières parties, ses types de coffres, ses trésors et l'adresse de son overlay OBS. Le joueur affiché se choisit en haut à droite.
-- **Chances** : comme dans le compteur, avec les heures du trésor. Les coffres ouverts pendant une heure du trésor comptent avec leurs chances augmentées.
+- **Chances** : comme dans le compteur (1.5.1), avec les heures du trésor. Les trésors de la semaine (tenue en or, véhicule, pioche, piste, écran de chargement) ne comptent que les coffres de la semaine en cours, avec une ligne pour toute la chasse ; l'accès à la boutique pirate et les gizmos comptent tous les coffres de la chasse. Les coffres ouverts pendant une heure du trésor comptent avec leurs chances augmentées, et une chance n'est jamais affichée à 100 %.
 - **Collection** : les trésors de la saison, semaine par semaine. Ceux vus dans les replays sont cochés tout seuls ; le reste se coche à la main et est enregistré sur le serveur.
 - **Parties** : toutes les parties, 20 par page, filtrables (toutes / en groupe, par joueur), équipe par équipe, avec l'état de la synchro (`complet`, `2/4 joueurs`, `à vérifier`). Rien n'est jamais effacé : les parties restent même quand Fortnite supprime ses anciens replays.
 - **Aide** : rejoindre le groupe, l'overlay OBS et les commandes des clés.
 
-Le site est en français pour l'instant.
+Le site est en **français**, **anglais** et **espagnol** : chacun choisit sa langue en haut à droite (retenue par le navigateur). Sans choix, c'est `DEFAULT_LANG` (français par défaut). L'overlay OBS suit le paramètre `?lang=` de son adresse, que le bouton *Copier* ajoute.
 
 ## Côté joueurs
 

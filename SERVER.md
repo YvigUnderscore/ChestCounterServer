@@ -80,6 +80,7 @@ docker compose exec chests python -m app.admin set group <key> # choose the key 
 | Variable | Role |
 |---|---|
 | `GROUP_NAME` | Name shown at the top of the website. |
+| `DEFAULT_LANG` | Language of the website for a visitor who has not picked one: `fr` (default), `en` or `es`. |
 | `PUBLIC_URL` | Public address of the website (e.g. `https://chests.example.org`): used for the links of the counter and of `admin show`. |
 | `PORT` | Published port (8080 by default). |
 | `TZ` | Time zone for "today" and the chests per day (`Europe/Paris` by default). |
@@ -91,15 +92,15 @@ docker compose exec chests python -m app.admin set group <key> # choose the key 
 
 The tabs follow those of the counter:
 
-- **Serveur** (server): everything the players of the server sent, every match (alone, in a group or with strangers): total, today's chests, the server's odds (at least one player got the gold outfit or the Pirate Shop Access), chests per player, chests per day, latest matches.
-- **Groupes** (groups): only the matches **in a group**, i.e. where at least two players of the server were in the same team (whether or not they all sent it). Each combination of players ("Alice · Bob", "Alice · Bob · Cleo"…) with its matches, chests, average and best match, then each player's chests in groups.
-- **Joueur** (player): their chests in total, in groups and outside groups, their groups, latest matches, chest types, treasures and the address of their OBS overlay. The player shown is picked at the top right.
-- **Chances** (odds): as in the counter, with the Treasure Hours. Chests opened during a Treasure Hour count with their boosted odds.
+- **Server**: everything the players of the server sent, every match (alone, in a group or with strangers): total, today's chests, the server's odds (at least one player got the gold outfit or the Pirate Shop Access), chests per player, chests per day, latest matches.
+- **Groups**: only the matches **in a group**, i.e. where at least two players of the server were in the same team (whether or not they all sent it). Each combination of players ("Alice · Bob", "Alice · Bob · Cleo"…) with its matches, chests, average and best match, then each player's chests in groups.
+- **Player**: their chests in total, in groups and outside groups, their groups, latest matches, chest types, treasures and the address of their OBS overlay. The player shown is picked at the top right.
+- **Odds**: as in the counter (1.5.1), with the Treasure Hours. The weekly treasures (gold outfit, vehicle, pickaxe, jam track, loading screen) only count the chests of the current week, with a line for the whole hunt; the Pirate Shop Access and gizmos count every chest of the hunt. Chests opened during a Treasure Hour count with their boosted odds, and a chance is never shown as 100%.
 - **Collection**: the season's treasures, week by week. Those seen in the replays are ticked by themselves; the rest is ticked by hand and saved on the server.
-- **Parties** (matches): every match, 20 per page, filtered (all / in a group, by player), team by team, with the sync status (`complet`, `2/4 joueurs`, `à vérifier`). Nothing is ever deleted: matches stay even when Fortnite deletes its old replays.
-- **Aide** (help): joining the group, the OBS overlay and the key commands.
+- **Matches**: every match, 20 per page, filtered (all / in a group, by player), team by team, with the sync status (`complete`, `2/4 players`, `to check`). Nothing is ever deleted: matches stay even when Fortnite deletes its old replays.
+- **Help**: joining the group, the OBS overlay and the key commands.
 
-The website is in French for now.
+The website is in **French**, **English** and **Spanish**: everyone picks their language at the top right (remembered by the browser). Without a choice, it is `DEFAULT_LANG` (French by default). The OBS overlay follows the `?lang=` parameter of its address, which the *Copy* button adds.
 
 ## For the players
 

@@ -80,6 +80,7 @@ docker compose exec chests python -m app.admin set group <clave> # elegir la cla
 | Variable | Función |
 |---|---|
 | `GROUP_NAME` | Nombre mostrado arriba del sitio. |
+| `DEFAULT_LANG` | Idioma del sitio para un visitante que no ha elegido ninguno: `fr` (por defecto), `en` o `es`. |
 | `PUBLIC_URL` | Dirección pública del sitio (p. ej. `https://cofres.example.org`): sirve para los enlaces del contador y de `admin show`. |
 | `PORT` | Puerto publicado (8080 por defecto). |
 | `TZ` | Zona horaria para «hoy» y los cofres por día (`Europe/Paris` por defecto). |
@@ -91,15 +92,15 @@ docker compose exec chests python -m app.admin set group <clave> # elegir la cla
 
 Las pestañas siguen las del contador:
 
-- **Serveur** (servidor): todo lo que han enviado los jugadores del servidor, todas las partidas (solo, en grupo o con desconocidos): total, cofres del día, probabilidades del servidor (al menos un jugador consiguió el traje de oro o el acceso a la tienda pirata), cofres por jugador, cofres por día, últimas partidas.
-- **Groupes** (grupos): solo las partidas **en grupo**, es decir, en las que al menos dos jugadores del servidor estaban en el mismo equipo (las hayan enviado todos o no). Cada combinación de jugadores («Alicia · Bob», «Alicia · Bob · Cleo»…) con sus partidas, cofres, media y récord, y luego los cofres de cada jugador en grupo.
-- **Joueur** (jugador): sus cofres en total, en grupo y fuera de grupo, sus grupos, últimas partidas, tipos de cofres, tesoros y la dirección de su overlay de OBS. El jugador mostrado se elige arriba a la derecha.
-- **Chances** (probabilidades): como en el contador, con las horas del tesoro. Los cofres abiertos durante una hora del tesoro cuentan con su probabilidad aumentada.
-- **Collection** (colección): los tesoros de la temporada, semana por semana. Los vistos en las repeticiones se marcan solos; el resto se marca a mano y se guarda en el servidor.
-- **Parties** (partidas): todas las partidas, 20 por página, filtrables (todas / en grupo, por jugador), equipo por equipo, con el estado de la sincronización (`complet`, `2/4 joueurs`, `à vérifier`). Nunca se borra nada: las partidas se quedan aunque Fortnite borre sus repeticiones antiguas.
-- **Aide** (ayuda): unirse al grupo, el overlay de OBS y los comandos de las claves.
+- **Servidor**: todo lo que han enviado los jugadores del servidor, todas las partidas (solo, en grupo o con desconocidos): total, cofres del día, probabilidades del servidor (al menos un jugador consiguió el traje de oro o el acceso a la tienda pirata), cofres por jugador, cofres por día, últimas partidas.
+- **Grupos**: solo las partidas **en grupo**, es decir, en las que al menos dos jugadores del servidor estaban en el mismo equipo (las hayan enviado todos o no). Cada combinación de jugadores («Alicia · Bob», «Alicia · Bob · Cleo»…) con sus partidas, cofres, media y récord, y luego los cofres de cada jugador en grupo.
+- **Jugador**: sus cofres en total, en grupo y fuera de grupo, sus grupos, últimas partidas, tipos de cofres, tesoros y la dirección de su overlay de OBS. El jugador mostrado se elige arriba a la derecha.
+- **Probabilidades**: como en el contador (1.5.1), con las horas del tesoro. Los tesoros semanales (traje de oro, vehículo, pico, pista, pantalla de carga) solo cuentan los cofres de la semana en curso, con una línea para toda la búsqueda; el acceso a la tienda pirata y los artilugios cuentan todos los cofres de la búsqueda. Los cofres abiertos durante una hora del tesoro cuentan con su probabilidad aumentada, y una probabilidad nunca se muestra al 100 %.
+- **Colección**: los tesoros de la temporada, semana por semana. Los vistos en las repeticiones se marcan solos; el resto se marca a mano y se guarda en el servidor.
+- **Partidas**: todas las partidas, 20 por página, filtrables (todas / en grupo, por jugador), equipo por equipo, con el estado de la sincronización (`completo`, `2/4 jugadores`, `a revisar`). Nunca se borra nada: las partidas se quedan aunque Fortnite borre sus repeticiones antiguas.
+- **Ayuda**: unirse al grupo, el overlay de OBS y los comandos de las claves.
 
-De momento el sitio está en francés.
+El sitio está en **francés**, **inglés** y **español**: cada uno elige su idioma arriba a la derecha (el navegador lo recuerda). Sin elección, es `DEFAULT_LANG` (francés por defecto). El overlay de OBS sigue el parámetro `?lang=` de su dirección, que el botón *Copiar* añade.
 
 ## Para los jugadores
 

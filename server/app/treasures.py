@@ -161,24 +161,52 @@ def chest_times_of(reports) -> tuple[list[datetime], int]:
     return times, plain
 
 
-def chances(reports) -> dict | None:
-    """Chance of having obtained each kind of treasure at least once with the chests of these reports."""
+def _average(one_in: int, times: list[datetime], plain: int, kind: str, hours) -> float:
+    """Expected number of treasures (with the Treasure Hour boosts, like "at least one")."""
+    p = 1.0 / one_in
+    return max(0, plain) * p + sum(min(0.999, p * boost(kind, t, hours)) for t in times)
+
+
+def chances(reports, now: datetime | None = None) -> dict | None:
+    """
+    Chance of having obtained each kind of treasure at least once with the chests of these reports, as the counter
+    computes it since 1.5.1: chests opened before the hunt are left out; a weekly treasure (gold outfit, vehicle,
+    pickaxe, jam track, loading screen) only comes from the chests of its week, so its chance is the current week's
+    (the whole hunt is given as "season"); the Pirate Shop Access and gizmos count every chest of the hunt. Chests
+    without a time (sent by an older client) only count for those two.
+    """
     c = current()
     if not c or not c.get("weeks"):
         return None
+    now = now or datetime.now(timezone.utc)
+    weeks = [(_dt(w["start"]), _dt(w["end"]), w) for w in c["weeks"]]
+    hunt_start = min(s for s, _, _ in weeks)
+    week = next(((s, e, w) for s, e, w in weeks if s <= now < e), None)
     times, plain = chest_times_of(reports)
+    times = [t for t in times if t >= hunt_start]
+    week_times = [t for t in times if week and week[0] <= t < week[1]]
     chests = len(times) + plain
     hours = _hours(c)
     out = []
     for o in c["odds"]:
-        p = at_least_once(o["oneIn"], times, plain, o["kind"], hours)
+        weekly = bool(o.get("weekly", False))
+        use_times, use_plain = (week_times, 0) if weekly else (times, plain)
+        n = len(use_times) + use_plain
+        p = at_least_once(o["oneIn"], use_times, use_plain, o["kind"], hours)
         half = chests_for(o["oneIn"], 0.5)
         out.append({
-            "kind": o["kind"], "name": KIND_NAMES.get(o["kind"], o["kind"]), "oneIn": o["oneIn"], "weekly": o.get("weekly", False),
-            "chance": p, "average": chests / o["oneIn"], "half": half, "left": max(0, half - chests), "big": o["kind"] in BIG_KINDS,
+            "kind": o["kind"], "name": KIND_NAMES.get(o["kind"], o["kind"]), "oneIn": o["oneIn"], "weekly": weekly,
+            "chance": p, "never": 1 - p, "chests": n, "average": _average(o["oneIn"], use_times, use_plain, o["kind"], hours),
+            "half": half, "left": max(0, half - n), "big": o["kind"] in BIG_KINDS,
+            # For a weekly treasure: any week's item, over the whole hunt.
+            "season": at_least_once(o["oneIn"], times, 0, o["kind"], hours) if weekly else None,
         })
     boosted = sum(1 for t in times if boost("outfit", t, hours) > 1)
-    return {"chests": chests, "boostedChests": boosted, "odds": out}
+    return {
+        "chests": chests, "weekChests": len(week_times), "boostedChests": boosted,
+        "week": {"number": week[2]["number"], "title": week[2].get("title", ""), "end": week[2]["end"]} if week else None,
+        "odds": out,
+    }
 
 
 def local_name(url: str) -> str:

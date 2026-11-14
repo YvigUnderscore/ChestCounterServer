@@ -116,3 +116,5 @@ pre{background:#1c2a35;color:#efe2c4;padding:12px;border-radius:8px;overflow-x:a
 .filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
 .chip{padding:5px 12px;border:1px solid var(--gold);border-radius:999px;text-decoration:none;color:var(--ink);font-size:13px;font-weight:600}
 .chip.on{background:var(--gold);color:#2a1c0f}
+.pickers{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+#lang{max-width:120px}

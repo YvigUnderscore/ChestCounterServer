@@ -31,6 +31,9 @@ from .groups import build_teams, group_stats
 log = logging.getLogger("uvicorn.error")
 
 GROUP_NAME = os.environ.get("GROUP_NAME", "Coffres du serveur")
+# Language of the website for a visitor who has not picked one (fr, en or es).
+_LANG = os.environ.get("DEFAULT_LANG", "fr").strip().lower()[:2]
+DEFAULT_LANG = _LANG if _LANG in ("fr", "en", "es") else "fr"
 PUBLIC_URL = os.environ.get("PUBLIC_URL", "").rstrip("/")
 TZ = ZoneInfo(os.environ.get("TZ") or "Europe/Paris")
 DATA_DIR = Path(os.environ.get("DATA_DIR", "/data"))
@@ -213,6 +216,7 @@ def overview(days: int = 30):
     teams.sort(key=lambda t: t["startUtc"] or "", reverse=True)
     return {
         "groupName": GROUP_NAME,
+        "defaultLang": DEFAULT_LANG,
         "totals": {"chests": sum(p["chests"] for p in players), "matches": matches, "players": len(players),
                    "treasures": sum(p["treasures"] for p in players), "today": today,
                    "groupGames": groups["games"], "groupChests": groups["chests"]},
@@ -244,7 +248,7 @@ def player(epic_id: str):
     for r in reports:
         for t in json.loads(r["treasures"] or "[]"):
             prize = treasures.prize_for(t.get("prizeId"))
-            found.append({**t, "name": prize["name"] if prize else (t.get("name") or "Trésor"), "catalogId": prize["id"] if prize else None,
+            found.append({**t, "name": prize["name"] if prize else (t.get("name") or None), "catalogId": prize["id"] if prize else None,
                           "sessionId": r["session_id"], "startUtc": r["start_utc"]})
     found.sort(key=lambda t: t["startUtc"] or "", reverse=True)
     def own(t):
@@ -318,7 +322,7 @@ def games(scope: str = "all", player: str = "", offset: int = 0, limit: int = 20
 @app.get("/api/content")
 def content():
     """Weeks, prizes, Treasure Hours: what the collection and the odds pages show."""
-    return {**treasures.catalog(), "groupName": GROUP_NAME, "publicUrl": PUBLIC_URL or None}
+    return {**treasures.catalog(), "groupName": GROUP_NAME, "publicUrl": PUBLIC_URL or None, "defaultLang": DEFAULT_LANG}
 
 
 # --- pages -----------------------------------------------------------------------------------------------------

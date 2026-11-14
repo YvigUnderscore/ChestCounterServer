@@ -23,19 +23,23 @@
 <div class="cap" id="cap"></div>
 <div class="rows" id="rows"></div>
 <script src="/static/common.js"></script>
+<script src="/static/i18n.js"></script>
 <script>
+// Language: ?lang=fr|en|es in the OBS address (the site's "Copy" button adds it), else the server's default.
 const ID = decodeURIComponent(location.pathname.split('/')[2]);
+let langSet = false;
 async function load() {
   try {
+    if (!langSet) { const c = await api('/api/content'); setLang(new URLSearchParams(location.search).get('lang') || c.defaultLang); langSet = true; }
     const [p, s] = await Promise.all([api('/api/players/' + encodeURIComponent(ID)), api('/api/players/' + encodeURIComponent(ID) + '/summary')]);
     $('#total').textContent = N(p.player.chests);
     $('#cap').textContent = p.player.name;
     const g = s.lastGame, rows = [];
     const me = g && g.members.find(m => m.me);
-    if (g) rows.push(['Dernière', N(me ? me.chests : 0) + ' coffres', '']);
-    if (g && g.humans > 1) rows.push(['Équipe', N(g.teamChests) + (g.complete ? '' : '+') + ' coffres', g.complete ? '' : g.reported + '/' + g.humans]);
-    rows.push(["Aujourd'hui", N(s.todayTeamChests) + ' · ' + N(s.todayGames) + ' parties', '']);
-    rows.push(['Trésors', '★ ' + N(p.player.treasures), '']);
+    if (g) rows.push([t('ovLast'), t('ovChests', { n: me ? me.chests : 0 }), '']);
+    if (g && g.humans > 1) rows.push([t('ovSquad'), t('ovChests', { n: g.teamChests }).replace(N(g.teamChests), N(g.teamChests) + (g.complete ? '' : '+')), g.complete ? '' : g.reported + '/' + g.humans]);
+    rows.push([t('ovToday'), N(s.todayTeamChests) + ' · ' + t('ovGames', { n: s.todayGames }), '']);
+    rows.push([t('ovTreasures'), '★ ' + N(p.player.treasures), '']);
     $('#rows').innerHTML = rows.map(([l, v, d]) => `<span class="l">${esc(l)}</span><span>${esc(v)}${d ? ` <span class="d">${esc(d)}</span>` : ''}</span>`).join('');
   } catch (e) {
     $('#rows').innerHTML = `<span class="err">${esc(e.message)}</span>`;
